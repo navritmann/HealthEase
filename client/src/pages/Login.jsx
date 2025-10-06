@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Box, Button, TextField, Typography } from "@mui/material";
 
 function Login() {
@@ -38,6 +38,7 @@ function Login() {
       <Typography variant="h4" gutterBottom>
         Login
       </Typography>
+
       <form onSubmit={handleSubmit} style={{ width: "300px" }}>
         <TextField
           name="email"
@@ -60,6 +61,16 @@ function Login() {
           Login
         </Button>
       </form>
+
+      <Typography variant="body2" sx={{ marginTop: 2 }}>
+        Don’t have an account?{" "}
+        <Link
+          to="/register"
+          style={{ color: "#1976D2", textDecoration: "none" }}
+        >
+          Register here
+        </Link>
+      </Typography>
     </Box>
   );
 }
