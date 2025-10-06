@@ -31,10 +31,11 @@ export const loginUser = async (req, res) => {
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { userId: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "2h" }
     );
+
     res.json({ token, user });
   } catch (err) {
     res.status(500).json({ msg: "Server error", error: err.message });
