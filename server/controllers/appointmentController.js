@@ -3,6 +3,8 @@ import Appointment from "../models/Appointment.js";
 export const createAppointment = async (req, res) => {
   try {
     const { patientId, doctorId, slot } = req.body;
+    console.log(req.body);
+
     if (!patientId || !doctorId || !slot?.date || !slot?.time)
       return res.status(400).json({
         msg: "patientId, doctorId, slot.date, slot.time are required",
