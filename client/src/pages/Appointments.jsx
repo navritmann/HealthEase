@@ -1,210 +1,145 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
 import {
   Box,
-  TextField,
   Button,
+  Card,
+  CardContent,
+  TextField,
   Typography,
-  Paper,
   MenuItem,
+  Table,
+  TableHead,
+  TableBody,
+  TableCell,
+  TableRow,
 } from "@mui/material";
+import api from "../api/axios";
 
-const Appointments = () => {
-  const [appointments, setAppointments] = useState([]);
+const Appointment = () => {
   const [form, setForm] = useState({
-    patientId: "",
     doctorId: "",
     slotDate: "",
     slotTime: "",
   });
-
-  const [users, setUsers] = useState([]); // for dropdowns
-  const token = localStorage.getItem("token");
-
-  // ✅ Fetch all appointments
-  const fetchAppointments = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/appointments", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      setAppointments(res.data);
-    } catch (err) {
-      console.error("Fetch error:", err.response?.data || err.message);
-    }
-  };
-
-  // ✅ Fetch all users (optional for dropdowns)
-  const fetchUsers = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/auth/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUsers(res.data);
-    } catch (err) {
-      console.error("User fetch error:", err.response?.data || err.message);
-    }
-  };
-
-  // ✅ Add new appointment
-  const addAppointment = async () => {
-    if (!form.patientId || !form.doctorId || !form.slotDate || !form.slotTime) {
-      alert("Please fill all fields.");
-      return;
-    }
-
-    const payload = {
-      patientId: form.patientId,
-      doctorId: form.doctorId,
-      slot: {
-        date: form.slotDate,
-        time: form.slotTime,
-      },
-    };
-
-    try {
-      console.log("Sending payload:", payload);
-      const res = await axios.post(
-        "http://localhost:5000/api/appointments",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      console.log("Add response:", res.data);
-      setForm({ patientId: "", doctorId: "", slotDate: "", slotTime: "" });
-      fetchAppointments();
-    } catch (err) {
-      console.error("Add error:", err.response?.data || err.message);
-      alert(
-        "Failed to add appointment: " + (err.response?.data?.msg || err.message)
-      );
-    }
-  };
+  const [appointments, setAppointments] = useState([]);
+  const [doctors, setDoctors] = useState([]);
 
   useEffect(() => {
-    fetchAppointments();
-    fetchUsers();
+    const fetchData = async () => {
+      const resDoctors = await api.get("/auth/doctors");
+      setDoctors(resDoctors.data);
+      const resAppointments = await api.get("/appointments");
+      setAppointments(resAppointments.data);
+    };
+    fetchData();
   }, []);
 
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      console.log(user);
+
+      const patientId = user?.id;
+
+      await api.post("/appointments", {
+        patientId,
+        doctorId: form.doctorId,
+        slot: { date: form.slotDate, time: form.slotTime },
+      });
+
+      alert("Appointment booked successfully!");
+      // Optional: refresh appointments list
+      const resAppointments = await api.get("/appointments");
+      setAppointments(resAppointments.data);
+    } catch (err) {
+      alert(err.response?.data?.msg || "Error booking appointment");
+    }
+  };
+
   return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h5" mb={3}>
-        Manage Appointments
+    <Box p={4}>
+      <Typography variant="h4" mb={3} fontWeight="bold">
+        Book an Appointment
       </Typography>
 
-      {/* Add Form */}
-      <Paper
-        sx={{
-          p: 3,
-          mb: 4,
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr) auto",
-          gap: 2,
-          alignItems: "center",
-        }}
-      >
-        {/* Patient Dropdown */}
-        <TextField
-          select
-          label="Select Patient"
-          value={form.patientId}
-          onChange={(e) => setForm({ ...form, patientId: e.target.value })}
-        >
-          {users.map((u) => (
-            <MenuItem key={u._id} value={u._id}>
-              {u.name} ({u.email})
-            </MenuItem>
+      <Card sx={{ maxWidth: 600, mb: 4 }}>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              select
+              label="Select Doctor"
+              name="doctorId"
+              fullWidth
+              margin="normal"
+              value={form.doctorId}
+              onChange={handleChange}
+            >
+              {doctors.map((doc) => (
+                <MenuItem key={doc._id} value={doc._id}>
+                  {doc.name}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              label="Date"
+              name="slotDate"
+              type="date"
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+              value={form.slotDate}
+              onChange={handleChange}
+            />
+            <TextField
+              label="Time"
+              name="slotTime"
+              type="time"
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+              value={form.slotTime}
+              onChange={handleChange}
+            />
+
+            <Button variant="contained" type="submit" fullWidth sx={{ mt: 2 }}>
+              Book Appointment
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Typography variant="h5" mb={2}>
+        Your Appointments
+      </Typography>
+
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Doctor</TableCell>
+            <TableCell>Date</TableCell>
+            <TableCell>Time</TableCell>
+            <TableCell>Status</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {appointments.map((a) => (
+            <TableRow key={a._id}>
+              <TableCell>{a.doctorId?.name}</TableCell>
+              <TableCell>{a.slot?.date}</TableCell>
+              <TableCell>{a.slot?.time}</TableCell>
+              <TableCell>{a.status}</TableCell>
+            </TableRow>
           ))}
-        </TextField>
-
-        {/* Doctor Dropdown */}
-        <TextField
-          select
-          label="Select Doctor"
-          value={form.doctorId}
-          onChange={(e) => setForm({ ...form, doctorId: e.target.value })}
-        >
-          {users
-            .filter((u) => u.role === "doctor")
-            .map((u) => (
-              <MenuItem key={u._id} value={u._id}>
-                Dr. {u.name}
-              </MenuItem>
-            ))}
-        </TextField>
-
-        {/* Date */}
-        <TextField
-          type="date"
-          label="Date"
-          InputLabelProps={{ shrink: true }}
-          value={form.slotDate}
-          onChange={(e) => setForm({ ...form, slotDate: e.target.value })}
-        />
-
-        {/* Time */}
-        <TextField
-          label="Time"
-          placeholder="e.g. 10:30 AM"
-          value={form.slotTime}
-          onChange={(e) => setForm({ ...form, slotTime: e.target.value })}
-        />
-
-        {/* Add Button */}
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={addAppointment}
-          sx={{ height: "56px" }}
-        >
-          Add
-        </Button>
-      </Paper>
-
-      {/* List of Appointments */}
-      {appointments.length > 0 ? (
-        appointments.map((appt) => (
-          <Paper
-            key={appt._id}
-            sx={{
-              p: 2,
-              mb: 2,
-              border: "1px solid #ccc",
-              borderRadius: 2,
-            }}
-          >
-            <Typography>
-              <strong>Patient:</strong> {appt.patientId?.name || appt.patientId}
-            </Typography>
-            <Typography>
-              <strong>Doctor:</strong> Dr.{" "}
-              {appt.doctorId?.name || appt.doctorId}
-            </Typography>
-            <Typography>
-              <strong>Date:</strong>{" "}
-              {appt.slot?.date
-                ? new Date(appt.slot.date).toLocaleDateString()
-                : "N/A"}
-            </Typography>
-            <Typography>
-              <strong>Time:</strong> {appt.slot?.time}
-            </Typography>
-            <Typography>
-              <strong>Status:</strong> {appt.status}
-            </Typography>
-          </Paper>
-        ))
-      ) : (
-        <Typography color="text.secondary">No appointments found.</Typography>
-      )}
+        </TableBody>
+      </Table>
     </Box>
   );
 };
 
-export default Appointments;
+export default Appointment;

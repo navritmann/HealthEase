@@ -22,6 +22,16 @@ router.get("/users", authMiddleware, async (req, res) => {
   }
 });
 
+router.get("/doctors", async (req, res) => {
+  try {
+    const doctors = await User.find({ role: "doctor" }).select(
+      "name _id email"
+    );
+    res.json(doctors);
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching doctors", error: err.message });
+  }
+});
 // Admin login (only admins pass)
 router.post("/admin-login", adminLogin);
 

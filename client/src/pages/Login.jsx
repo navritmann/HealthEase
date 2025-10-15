@@ -1,11 +1,24 @@
 import React, { useState } from "react";
-import axios from "axios";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  TextField,
+  Typography,
+  MenuItem,
+} from "@mui/material";
 import { useNavigate, Link } from "react-router-dom";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import api from "../api/axios";
 
-function Login() {
-  const [form, setForm] = useState({ email: "", password: "" });
+const Login = () => {
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    role: "patient",
+  });
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -14,22 +27,18 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        form
-      );
+      setLoading(true);
+      const res = await api.post("/auth/login", form);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      alert("Login successful!");
-      const user = res.data.user;
+      localStorage.setItem("role", res.data.user.role);
 
-      if (user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/dashboard");
-      }
+      if (res.data.user.role === "admin") navigate("/admin/login");
+      else navigate("/dashboard");
     } catch (err) {
-      alert("Invalid credentials");
+      alert(err.response?.data?.msg || "Invalid credentials");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,47 +47,69 @@ function Login() {
       display="flex"
       justifyContent="center"
       alignItems="center"
-      height="100vh"
-      flexDirection="column"
+      minHeight="100vh"
+      bgcolor="#f4f6f8"
     >
-      <Typography variant="h4" gutterBottom>
-        Login
-      </Typography>
+      <Card sx={{ width: 400, p: 3, borderRadius: 3, boxShadow: 3 }}>
+        <CardContent>
+          <Typography variant="h5" mb={2} fontWeight="bold" textAlign="center">
+            HealthEase Login
+          </Typography>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              fullWidth
+              margin="normal"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Password"
+              name="password"
+              type="password"
+              fullWidth
+              margin="normal"
+              value={form.password}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              select
+              name="role"
+              label="Role"
+              fullWidth
+              margin="normal"
+              value={form.role}
+              onChange={handleChange}
+            >
+              <MenuItem value="patient">Patient</MenuItem>
+              <MenuItem value="doctor">Doctor</MenuItem>
+            </TextField>
 
-      <form onSubmit={handleSubmit} style={{ width: "300px" }}>
-        <TextField
-          name="email"
-          label="Email"
-          fullWidth
-          margin="normal"
-          onChange={handleChange}
-          required
-        />
-        <TextField
-          name="password"
-          label="Password"
-          type="password"
-          fullWidth
-          margin="normal"
-          onChange={handleChange}
-          required
-        />
-        <Button variant="contained" color="primary" fullWidth type="submit">
-          Login
-        </Button>
-      </form>
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={loading}
+              sx={{ mt: 2, py: 1.2 }}
+            >
+              {loading ? "Logging in..." : "Login"}
+            </Button>
+          </form>
 
-      <Typography variant="body2" sx={{ marginTop: 2 }}>
-        Don’t have an account?{" "}
-        <Link
-          to="/register"
-          style={{ color: "#1976D2", textDecoration: "none" }}
-        >
-          Register here
-        </Link>
-      </Typography>
+          <Typography variant="body2" textAlign="center" mt={2}>
+            Don’t have an account?{" "}
+            <Link to="/register" style={{ textDecoration: "none" }}>
+              Register here
+            </Link>
+          </Typography>
+        </CardContent>
+      </Card>
     </Box>
   );
-}
+};
 
 export default Login;

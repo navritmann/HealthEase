@@ -1,16 +1,24 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { Box, Button, TextField, MenuItem, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  TextField,
+  Typography,
+  MenuItem,
+} from "@mui/material";
+import { useNavigate, Link } from "react-router-dom";
+import api from "../api/axios";
 
-function Register() {
-  const navigate = useNavigate();
+const Register = () => {
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
     role: "patient",
   });
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -19,11 +27,11 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/auth/register", form);
+      await api.post("/auth/register", form);
       alert("Registration successful!");
       navigate("/login");
     } catch (err) {
-      alert("Error: " + err.response?.data?.msg);
+      alert(err.response?.data?.msg || "Something went wrong");
     }
   };
 
@@ -32,57 +40,78 @@ function Register() {
       display="flex"
       justifyContent="center"
       alignItems="center"
-      height="100vh"
-      flexDirection="column"
+      minHeight="100vh"
+      bgcolor="#f4f6f8"
     >
-      <Typography variant="h4" gutterBottom>
-        Register
-      </Typography>
-      <form onSubmit={handleSubmit} style={{ width: "300px" }}>
-        <TextField
-          name="name"
-          label="Name"
-          fullWidth
-          margin="normal"
-          onChange={handleChange}
-          required
-        />
-        <TextField
-          name="email"
-          label="Email"
-          type="email"
-          fullWidth
-          margin="normal"
-          onChange={handleChange}
-          required
-        />
-        <TextField
-          name="password"
-          label="Password"
-          type="password"
-          fullWidth
-          margin="normal"
-          onChange={handleChange}
-          required
-        />
-        <TextField
-          select
-          name="role"
-          label="Role"
-          fullWidth
-          margin="normal"
-          onChange={handleChange}
-          value={form.role}
-        >
-          <MenuItem value="patient">Patient</MenuItem>
-          <MenuItem value="doctor">Doctor</MenuItem>
-        </TextField>
-        <Button variant="contained" color="primary" fullWidth type="submit">
-          Register
-        </Button>
-      </form>
+      <Card sx={{ width: 420, p: 3, borderRadius: 3, boxShadow: 3 }}>
+        <CardContent>
+          <Typography variant="h5" mb={2} fontWeight="bold" textAlign="center">
+            Create Account
+          </Typography>
+
+          <form onSubmit={handleSubmit}>
+            <TextField
+              label="Full Name"
+              name="name"
+              fullWidth
+              margin="normal"
+              value={form.name}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              fullWidth
+              margin="normal"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              label="Password"
+              name="password"
+              type="password"
+              fullWidth
+              margin="normal"
+              value={form.password}
+              onChange={handleChange}
+              required
+            />
+            <TextField
+              select
+              name="role"
+              label="Role"
+              fullWidth
+              margin="normal"
+              value={form.role}
+              onChange={handleChange}
+            >
+              <MenuItem value="patient">Patient</MenuItem>
+              <MenuItem value="doctor">Doctor</MenuItem>
+            </TextField>
+
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{ mt: 2, py: 1.2 }}
+            >
+              Register
+            </Button>
+          </form>
+
+          <Typography variant="body2" textAlign="center" mt={2}>
+            Already have an account?{" "}
+            <Link to="/login" style={{ textDecoration: "none" }}>
+              Login here
+            </Link>
+          </Typography>
+        </CardContent>
+      </Card>
     </Box>
   );
-}
+};
 
 export default Register;
