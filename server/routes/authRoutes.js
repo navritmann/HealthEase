@@ -1,3 +1,4 @@
+// server/routes/authRoutes.js
 import express from "express";
 import {
   registerUser,
@@ -12,8 +13,8 @@ const router = express.Router();
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 
-// List users (for dropdowns etc.)
-router.get("/users", authMiddleware, async (req, res) => {
+// List users (secured)
+router.get("/users", authMiddleware, async (_req, res) => {
   try {
     const users = await User.find().select("-passwordHash");
     res.json(users);
@@ -22,17 +23,28 @@ router.get("/users", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/doctors", async (req, res) => {
+// Doctors list (public for booking dropdown)
+router.get("/doctors", async (_req, res) => {
   try {
     const doctors = await User.find({ role: "doctor" }).select(
-      "name _id email"
+      "firstName lastName name _id email"
     );
-    res.json(doctors);
+    // Prefer full name on the wire for UI
+    const shaped = doctors.map((d) => ({
+      _id: d._id,
+      name:
+        d.firstName || d.lastName
+          ? `${d.firstName || ""} ${d.lastName || ""}`.trim()
+          : d.name || "",
+      email: d.email,
+    }));
+    res.json(shaped);
   } catch (err) {
     res.status(500).json({ msg: "Error fetching doctors", error: err.message });
   }
 });
-// Admin login (only admins pass)
+
+// Admin login
 router.post("/admin-login", adminLogin);
 
 export default router;
