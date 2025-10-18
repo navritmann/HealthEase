@@ -1,16 +1,95 @@
 import Appointment from "../models/Appointment.js";
+import { nanoid } from "nanoid";
+
+const calcTotal = ({
+  primaryService,
+  addOnServices = [],
+  bookingFee = 0,
+  tax = 0,
+  discount = 0,
+}) => {
+  const base =
+    (primaryService?.amount || 0) +
+    addOnServices.reduce((sum, s) => sum + (s.amount || 0), 0) +
+    bookingFee +
+    tax -
+    Math.abs(discount);
+  return Math.max(0, Number(base.toFixed(2)));
+};
 
 export const createAppointment = async (req, res) => {
   try {
-    const { patientId, doctorId, slot } = req.body;
-    console.log(req.body);
+    const {
+      patientId,
+      doctorId,
+      slot,
+      durationMins,
+      appointmentType,
+      clinicId,
+      clinicName,
+      clinicAddress,
+      primaryService,
+      addOnServices,
+      bookingFee,
+      tax,
+      discount,
+      contact,
+      selectedPatientId,
+      symptoms,
+      reasonForVisit,
+      attachments,
+      payment,
+    } = req.body;
 
-    if (!patientId || !doctorId || !slot?.date || !slot?.time)
+    if (!patientId || !doctorId || !slot?.date || !slot?.time) {
       return res.status(400).json({
         msg: "patientId, doctorId, slot.date, slot.time are required",
       });
+    }
 
-    const appointment = await Appointment.create({ patientId, doctorId, slot });
+    if (payment && !["stripe", "cash_on_delivery"].includes(payment.method)) {
+      return res.status(400).json({ msg: "Invalid payment method" });
+    }
+
+    if (["clinic", "home_visit"].includes(appointmentType) && !clinicId) {
+      return res.status(400).json({
+        msg: "clinicId is required for clinic/home_visit appointments",
+      });
+    }
+
+    const bookingNumber = `DCRA${nanoid(6).toUpperCase()}`;
+    const total = calcTotal({
+      primaryService,
+      addOnServices,
+      bookingFee,
+      tax,
+      discount,
+    });
+
+    const appointment = await Appointment.create({
+      patientId,
+      doctorId,
+      slot,
+      durationMins,
+      appointmentType,
+      clinicId,
+      clinicName,
+      clinicAddress,
+      primaryService,
+      addOnServices,
+      bookingFee,
+      tax,
+      discount,
+      total,
+      contact,
+      selectedPatientId,
+      symptoms,
+      reasonForVisit,
+      attachments,
+      payment,
+      bookingNumber,
+    });
+
     res.status(201).json({ msg: "Appointment created", appointment });
   } catch (err) {
     res

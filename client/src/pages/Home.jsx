@@ -97,6 +97,7 @@ const DOCTORS = [
     photo: "/images/doctors/doc-3.png",
   },
 ];
+
 export default function Home() {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
@@ -213,6 +214,15 @@ export default function Home() {
     );
   }
 
+  const goBookDr = (doctorId, type = "clinic", clinicId) => {
+    const params = new URLSearchParams({
+      doctor: doctorId,
+      type,
+      ...(clinicId ? { clinic: clinicId } : {}),
+    });
+    navigate(`/appointments?${params.toString()}`);
+  };
+
   return (
     <>
       <Navbar /> {/* fixed centered pill on top */}
@@ -313,6 +323,24 @@ export default function Home() {
                     }}
                   >
                     Explore Now
+                  </Button>
+                  <Button
+                    onClick={() => navigate("/appointments")}
+                    variant="contained"
+                    endIcon={<ArrowForwardRoundedIcon />}
+                    sx={{
+                      ml: 2,
+                      backgroundColor: "#0aa07a",
+                      color: "#fff",
+                      borderRadius: 999,
+                      px: 3,
+                      py: 1.2,
+                      textTransform: "none",
+                      fontWeight: 700,
+                      "&:hover": { backgroundColor: "#088a69" },
+                    }}
+                  >
+                    Book Appointment
                   </Button>
                 </Box>
               </Container>
@@ -1156,20 +1184,26 @@ export default function Home() {
                       </Typography>
                     </Box>
 
-                    <Box
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() =>
+                        goBookDr(d._id || "demo-doctor-id", "clinic")
+                      }
                       sx={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: "50%",
+                        textTransform: "none",
+                        fontWeight: 700,
+                        borderRadius: 999,
                         bgcolor: "rgba(255,255,255,0.95)",
                         color: "#0aa07a",
-                        display: "grid",
-                        placeItems: "center",
-                        flexShrink: 0,
+                        "&:hover": { bgcolor: "#fff" },
+                        px: 1.8,
+                        py: 0.6,
+                        minWidth: 0,
                       }}
                     >
-                      <AssignmentIndRoundedIcon fontSize="small" />
-                    </Box>
+                      Book
+                    </Button>
                   </Box>
                 </Box>
               </Grid>
