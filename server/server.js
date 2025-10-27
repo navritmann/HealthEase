@@ -6,6 +6,8 @@ import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import clinicRoutes from "./routes/clinicRoutes.js";
+import doctorRoutes from "./routes/doctorRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -28,6 +30,8 @@ app.get("/", (req, res) => res.send("HealthEase API Running 🚀"));
 app.use("/api/auth", authRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/clinics", clinicRoutes);
+app.use("/api/doctors", doctorRoutes);
 
 // 404
 app.use((req, res) => res.status(404).json({ msg: "Route not found" }));
