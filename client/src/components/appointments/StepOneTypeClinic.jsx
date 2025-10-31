@@ -19,35 +19,61 @@ import VideocamRoundedIcon from "@mui/icons-material/VideocamRounded";
 import CallRoundedIcon from "@mui/icons-material/CallRounded";
 import ChatRoundedIcon from "@mui/icons-material/ChatRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import RadioButtonUncheckedRoundedIcon from "@mui/icons-material/RadioButtonUncheckedRounded";
+
+/* ---------- CONSTANTS ---------- */
 
 const TYPE_TILES = [
-  { key: "clinic", label: "Clinic", icon: <LocalHospitalRoundedIcon /> },
-  { key: "video", label: "Video Call", icon: <VideocamRoundedIcon /> },
-  { key: "audio", label: "Audio Call", icon: <CallRoundedIcon /> },
-  { key: "chat", label: "Chat", icon: <ChatRoundedIcon /> },
-  { key: "home_visit", label: "Home Visit", icon: <HomeRoundedIcon /> },
+  { key: "clinic", label: "Clinic", icon: LocalHospitalRoundedIcon },
+  { key: "video", label: "Video Call", icon: VideocamRoundedIcon },
+  { key: "audio", label: "Audio Call", icon: CallRoundedIcon },
+  { key: "chat", label: "Chat", icon: ChatRoundedIcon },
+  { key: "home_visit", label: "Home Visit", icon: HomeRoundedIcon },
 ];
 
-function Tile({ active, icon, label, onClick }) {
+/* ---------- SMALL UI ATOMS ---------- */
+
+function TypeTile({ active, Icon, label, onClick }) {
   return (
-    <Button
+    <Box
       onClick={onClick}
-      variant="outlined"
-      startIcon={icon}
+      role="button"
+      tabIndex={0}
       sx={{
-        px: 3,
-        py: 1.5,
+        display: "flex",
+        alignItems: "center",
+        gap: 1.25,
+        px: 2.25,
+        py: 1.6,
         borderRadius: 2,
+        border: "1px solid",
         borderColor: active ? "primary.main" : "#E5E7EB",
         bgcolor: active ? "rgba(2,132,199,0.06)" : "#fff",
-        color: "text.primary",
-        textTransform: "none",
-        fontWeight: 700,
-        "&:hover": { bgcolor: active ? "rgba(2,132,199,0.10)" : "#FAFAFA" },
+        cursor: "pointer",
+        userSelect: "none",
+        transition: "all .15s ease",
+        "&:hover": { boxShadow: "0 8px 20px rgba(16,24,40,.06)" },
+        minWidth: 150,
+        justifyContent: "center",
       }}
     >
-      {label}
-    </Button>
+      <Box
+        sx={{
+          width: 36,
+          height: 36,
+          borderRadius: 2,
+          bgcolor: active ? "primary.main" : "#F3F4F6",
+          color: active ? "#fff" : "text.primary",
+          display: "grid",
+          placeItems: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Icon fontSize="small" />
+      </Box>
+      <Typography sx={{ fontWeight: 700 }}>{label}</Typography>
+    </Box>
   );
 }
 
@@ -57,9 +83,9 @@ function ClinicRow({ clinic, selected, onSelect }) {
       onClick={onSelect}
       id={`clinic-${clinic._id}`}
       sx={{
-        border: selected ? "2px solid" : "1px solid",
-        borderColor: selected ? "primary.main" : "#E5E7EB",
         borderRadius: 2,
+        border: "1px solid",
+        borderColor: selected ? "primary.main" : "#E5E7EB",
         p: 1.5,
         cursor: "pointer",
         transition: "all .15s ease",
@@ -79,21 +105,17 @@ function ClinicRow({ clinic, selected, onSelect }) {
             {clinic.distanceLabel ? `  •  ${clinic.distanceLabel}` : ""}
           </Typography>
         </Box>
-        <Box
-          sx={{
-            width: 18,
-            height: 18,
-            borderRadius: "50%",
-            border: "2px solid",
-            borderColor: selected ? "primary.main" : "#D1D5DB",
-            bgcolor: selected ? "primary.main" : "transparent",
-            flexShrink: 0,
-          }}
-        />
+        {selected ? (
+          <CheckCircleRoundedIcon sx={{ color: "primary.main" }} />
+        ) : (
+          <RadioButtonUncheckedRoundedIcon sx={{ color: "#D1D5DB" }} />
+        )}
       </Stack>
     </Box>
   );
 }
+
+/* ---------- MAIN COMPONENT ---------- */
 
 /**
  * Props:
@@ -103,7 +125,7 @@ function ClinicRow({ clinic, selected, onSelect }) {
  *  - onBack()
  *  - onNext({ appointmentType, clinicId, clinicMeta })
  *  - onChange({ appointmentType, clinicId })  // optional live updates
- *  - loading (bool), error (string)           // for clinics fetch state
+ *  - loading (bool), error (string)
  */
 export default function StepOneTypeClinic({
   doctor,
@@ -119,13 +141,8 @@ export default function StepOneTypeClinic({
   const [appointmentType, setAppointmentType] = useState(initialType);
   const [clinicId, setClinicId] = useState(initialClinicId);
 
-  useEffect(() => {
-    setAppointmentType(initialType);
-  }, [initialType]);
-
-  useEffect(() => {
-    setClinicId(initialClinicId);
-  }, [initialClinicId]);
+  useEffect(() => setAppointmentType(initialType), [initialType]);
+  useEffect(() => setClinicId(initialClinicId), [initialClinicId]);
 
   const requiresClinic = useMemo(
     () => appointmentType === "clinic" || appointmentType === "home_visit",
@@ -152,7 +169,6 @@ export default function StepOneTypeClinic({
   const handleClinicSelect = (id) => {
     setClinicId(id);
     onChange?.({ appointmentType, clinicId: id });
-    // Keep the selected one in view for long lists
     setTimeout(
       () =>
         document
@@ -163,16 +179,23 @@ export default function StepOneTypeClinic({
   };
 
   return (
-    <Card sx={{ borderRadius: 3 }}>
+    <Card
+      sx={{
+        borderRadius: 3,
+        overflow: "hidden",
+        border: "1px solid #EAECF0",
+        bgcolor: "#fff",
+      }}
+    >
       <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-        {/* Doctor header (optional) */}
+        {/* Doctor header (matches screenshot block) */}
         {doctor && (
           <Box
             sx={{
               border: "1px solid #E5E7EB",
               borderRadius: 2,
               p: 2,
-              mb: 2,
+              mb: 2.5,
               bgcolor: "#fff",
             }}
           >
@@ -210,29 +233,34 @@ export default function StepOneTypeClinic({
           </Box>
         )}
 
-        {/* Appointment Type */}
-        <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+        {/* Section: Select Appointment Type */}
+        <Typography sx={{ fontWeight: 700, mb: 1.25 }}>
           Select Appointment Type
         </Typography>
-        <Stack direction="row" flexWrap="wrap" gap={1.25} sx={{ mb: 2 }}>
+        <Stack
+          direction="row"
+          flexWrap="wrap"
+          useFlexGap
+          gap={1.25}
+          sx={{ mb: 2.25 }}
+        >
           {TYPE_TILES.map((t) => (
-            <Tile
+            <TypeTile
               key={t.key}
               label={t.label}
-              icon={t.icon}
+              Icon={t.icon}
               active={appointmentType === t.key}
               onClick={() => handleTypeChange(t.key)}
             />
           ))}
         </Stack>
 
-        {/* Clinics (if required) */}
+        {/* Section: Select Clinics */}
         {requiresClinic && (
           <>
             <Typography sx={{ fontWeight: 700, mb: 1 }}>
               Select Clinics
             </Typography>
-
             {loading ? (
               <Box sx={{ py: 4, display: "flex", justifyContent: "center" }}>
                 <CircularProgress size={28} />
@@ -262,59 +290,61 @@ export default function StepOneTypeClinic({
             )}
           </>
         )}
-
-        <Divider sx={{ my: 2 }} />
-
-        {/* Footer actions */}
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Button
-            variant="outlined"
-            onClick={onBack}
-            sx={{ borderRadius: 999 }}
-          >
-            ‹ Back
-          </Button>
-
-          <Tooltip
-            title={!canNext ? "Please select a clinic to continue" : ""}
-            disableHoverListener={canNext}
-            placement="top"
-          >
-            <span>
-              <Button
-                variant="contained"
-                disabled={!canNext}
-                onClick={() =>
-                  onNext({
-                    appointmentType,
-                    clinicId: selectedClinic?._id || null,
-                    clinicMeta: selectedClinic
-                      ? {
-                          name: selectedClinic.name,
-                          address: selectedClinic.address,
-                        }
-                      : null,
-                  })
-                }
-                sx={{ borderRadius: 999 }}
-              >
-                Select Date & Time →
-              </Button>
-            </span>
-          </Tooltip>
-        </Stack>
       </CardContent>
+
+      {/* Bottom action bar like screenshot */}
+      <Box
+        sx={{
+          px: { xs: 2, md: 3 },
+          py: 1.25,
+          borderTop: "1px dashed #E5E7EB",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          bgcolor: "#F9FAFB",
+        }}
+      >
+        <Button variant="outlined" onClick={onBack} sx={{ borderRadius: 999 }}>
+          ‹ Back
+        </Button>
+
+        <Tooltip
+          title={!canNext ? "Please select a clinic to continue" : ""}
+          disableHoverListener={canNext}
+          placement="top"
+        >
+          <span>
+            <Button
+              variant="contained"
+              disabled={!canNext}
+              onClick={() =>
+                onNext({
+                  appointmentType,
+                  clinicId: selectedClinic?._id || null,
+                  clinicMeta: selectedClinic
+                    ? {
+                        name: selectedClinic.name,
+                        address: selectedClinic.address,
+                      }
+                    : null,
+                })
+              }
+              sx={{ borderRadius: 999 }}
+            >
+              Select Date & Time →
+            </Button>
+          </span>
+        </Tooltip>
+      </Box>
     </Card>
   );
 }
 
-Tile.propTypes = {
+/* ---------- PropTypes ---------- */
+
+TypeTile.propTypes = {
   active: PropTypes.bool.isRequired,
-  icon: PropTypes.node.isRequired,
+  Icon: PropTypes.elementType.isRequired,
   label: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
 };
