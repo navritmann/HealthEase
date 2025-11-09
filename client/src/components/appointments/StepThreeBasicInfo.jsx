@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import {
   Avatar,
   Box,
@@ -6,7 +7,6 @@ import {
   Card,
   CardContent,
   Chip,
-  Divider,
   FormControl,
   Grid,
   MenuItem,
@@ -16,23 +16,31 @@ import {
   Typography,
 } from "@mui/material";
 
+const DEFAULT_DOCTOR = {
+  name: "Healthcare Provider",
+  specialty: "Doctor",
+  rating: null,
+  photoUrl: "",
+  addressLine: "",
+};
+
+const DEFAULT_SUMMARY = {
+  service: "—",
+  addOnService: "—",
+  dateLabel: "—",
+  appointmentType: "—",
+};
+
 export default function StepThreeBasicInfo({
-  doctor = {
-    name: "Dr. Michael Brown",
-    specialty: "Psychologist",
-    rating: 5.0,
-    photoUrl: "",
-    addressLine: "5th Street – 1011 W 5th St, Suite 120, Austin, TX 78703",
-  },
-  summary = {
-    service: "Cardiology (30 Mins)",
-    addOnService: "Echocardiograms",
-    dateLabel: "10:00 - 11:00 AM, 15, Oct 2025",
-    appointmentType: "Clinic (Wellness Path)",
-  },
+  doctor,
+  summary,
   onBack,
   onNext,
 }) {
+  // ✅ Safe fallbacks even if doctor/summary are null/undefined
+  const d = doctor ?? DEFAULT_DOCTOR;
+  const s = { ...DEFAULT_SUMMARY, ...(summary || {}) };
+
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -43,6 +51,19 @@ export default function StepThreeBasicInfo({
     reason: "",
     attachmentName: "",
   });
+
+  // Load saved draft (from localStorage or cookies if you swapped)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("he.patientDraft");
+      if (raw) setForm((f) => ({ ...f, ...JSON.parse(raw) }));
+    } catch {}
+  }, []);
+
+  // Autosave on change
+  useEffect(() => {
+    localStorage.setItem("he.patientDraft", JSON.stringify(form));
+  }, [form]);
 
   const PATIENTS = [
     { id: "p1", label: "Andrew Fletcher" },
@@ -55,6 +76,32 @@ export default function StepThreeBasicInfo({
 
   const fakePickFile = () =>
     setForm((f) => ({ ...f, attachmentName: "report.pdf" }));
+
+  const [errors, setErrors] = useState({});
+  const validate = () => {
+    const errs = {};
+    if (!form.firstName?.trim()) errs.firstName = "First name is required";
+    if (!form.lastName?.trim()) errs.lastName = "Last name is required";
+    if (!form.phone?.trim()) errs.phone = "Phone is required";
+    if (!form.email?.trim()) errs.email = "Email is required";
+    return errs;
+  };
+
+  const handleNext = () => {
+    const v = validate();
+    setErrors(v);
+    if (Object.keys(v).length) return;
+    onNext({
+      firstName: form.firstName,
+      lastName: form.lastName,
+      phone: form.phone,
+      email: form.email,
+      patientId: form.patientId,
+      symptoms: form.symptoms,
+      reason: form.reason,
+      attachmentName: form.attachmentName,
+    });
+  };
 
   return (
     <Card
@@ -73,29 +120,29 @@ export default function StepThreeBasicInfo({
         >
           <Stack direction="row" spacing={2} alignItems="center">
             <Avatar
-              src={doctor.photoUrl || ""}
-              alt={doctor.name}
+              src={d.photoUrl || ""}
+              alt={d.name || "Doctor"}
               sx={{ width: 56, height: 56 }}
             />
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Typography sx={{ fontWeight: 800 }} noWrap>
-                  {doctor.name}
+                  {d.name || "Healthcare Provider"}
                 </Typography>
-                {doctor.rating ? (
+                {d.rating ? (
                   <Chip
                     size="small"
-                    label={Number(doctor.rating).toFixed(1)}
+                    label={Number(d.rating).toFixed(1)}
                     color="warning"
                     sx={{ height: 22 }}
                   />
                 ) : null}
               </Stack>
               <Typography sx={{ color: "primary.main", fontSize: 13 }} noWrap>
-                {doctor.specialty || "Doctor"}
+                {d.specialty || "Doctor"}
               </Typography>
               <Typography sx={{ color: "text.secondary", fontSize: 12 }} noWrap>
-                {doctor.addressLine || ""}
+                {d.addressLine || ""}
               </Typography>
             </Box>
           </Stack>
@@ -116,38 +163,32 @@ export default function StepThreeBasicInfo({
               <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
                 Service
               </Typography>
-              <Typography sx={{ fontWeight: 700 }}>
-                {summary.service}
-              </Typography>
+              <Typography sx={{ fontWeight: 700 }}>{s.service}</Typography>
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                Service
+                Add-on(s)
               </Typography>
-              <Typography sx={{ fontWeight: 700 }}>
-                {summary.addOnService}
-              </Typography>
+              <Typography sx={{ fontWeight: 700 }}>{s.addOnService}</Typography>
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
                 Date & Time
               </Typography>
-              <Typography sx={{ fontWeight: 700 }}>
-                {summary.dateLabel}
-              </Typography>
+              <Typography sx={{ fontWeight: 700 }}>{s.dateLabel}</Typography>
             </Grid>
             <Grid item xs={12} md={3}>
               <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
                 Appointment type
               </Typography>
               <Typography sx={{ fontWeight: 700 }}>
-                {summary.appointmentType}
+                {s.appointmentType}
               </Typography>
             </Grid>
           </Grid>
         </Box>
 
-        {/* Form card */}
+        {/* Form */}
         <Box
           sx={{
             border: "1px solid #E5E7EB",
@@ -165,6 +206,8 @@ export default function StepThreeBasicInfo({
                 name="firstName"
                 value={form.firstName}
                 onChange={onChange}
+                error={!!errors.firstName}
+                helperText={errors.firstName || ""}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -175,6 +218,8 @@ export default function StepThreeBasicInfo({
                 name="lastName"
                 value={form.lastName}
                 onChange={onChange}
+                error={!!errors.lastName}
+                helperText={errors.lastName || ""}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -187,6 +232,8 @@ export default function StepThreeBasicInfo({
                 name="phone"
                 value={form.phone}
                 onChange={onChange}
+                error={!!errors.phone}
+                helperText={errors.phone || ""}
               />
             </Grid>
 
@@ -200,6 +247,8 @@ export default function StepThreeBasicInfo({
                 name="email"
                 value={form.email}
                 onChange={onChange}
+                error={!!errors.email}
+                helperText={errors.email || ""}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -299,7 +348,7 @@ export default function StepThreeBasicInfo({
         <Button
           variant="contained"
           sx={{ borderRadius: 999 }}
-          onClick={() => onNext({ ...form })}
+          onClick={handleNext}
         >
           Select Payment →
         </Button>
@@ -307,3 +356,10 @@ export default function StepThreeBasicInfo({
     </Card>
   );
 }
+
+StepThreeBasicInfo.propTypes = {
+  doctor: PropTypes.object, // may be null
+  summary: PropTypes.object, // may be null
+  onBack: PropTypes.func.isRequired,
+  onNext: PropTypes.func.isRequired,
+};

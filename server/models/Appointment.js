@@ -1,115 +1,115 @@
-// models/Appointment.js
 import mongoose from "mongoose";
 
-const priceSchema = new mongoose.Schema(
+const PaymentSchema = new mongoose.Schema(
   {
-    serviceName: { type: String, required: true }, // e.g., "Echocardiograms"
-    amount: { type: Number, required: true }, // 200
-    currency: { type: String, default: "USD" }, // or "CAD"
-  },
-  { _id: false }
-);
-
-const paymentSchema = new mongoose.Schema(
-  {
-    method: {
-      type: String,
-      enum: ["stripe", "cash_on_delivery"],
-      default: "cash_on_delivery",
-    },
     status: {
       type: String,
-      enum: ["pending", "paid", "failed"],
+      enum: ["pending", "requires_payment", "paid", "failed", "refunded"],
       default: "pending",
     },
-    transactionId: { type: String },
-    paidAt: { type: Date },
+    currency: { type: String, default: "USD" },
+    amount: Number,
+    gateway: { type: String, default: "stripe" },
+    intentId: String, // Stripe PaymentIntent id
+    chargeId: String, // Stripe charge id
   },
   { _id: false }
 );
 
-const attachmentSchema = new mongoose.Schema(
+const VideoSchema = new mongoose.Schema(
   {
-    fileName: String,
-    fileUrl: String,
-    mimeType: String,
-    size: Number,
+    roomId: String,
+    joinUrl: String,
+    pin: String, // simple shared secret
+    status: {
+      type: String,
+      enum: ["pending", "open", "ended"],
+      default: "pending",
+    },
+    startsAt: Date, // optional: window checks
+    endsAt: Date,
   },
   { _id: false }
 );
 
-const appointmentSchema = new mongoose.Schema({
-  patientId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  doctorId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-
-  // NEW: how/where
-  appointmentType: {
-    type: String,
-    enum: ["clinic", "video", "audio", "chat", "home_visit"],
-    default: "clinic",
-  },
-  clinicId: { type: mongoose.Schema.Types.ObjectId, ref: "Clinic" }, // required when type=clinic or home_visit
-  // optional helper for display:
-  clinicName: String,
-  clinicAddress: String,
-
-  // slot + duration
-  slot: {
-    date: { type: Date, required: true },
-    time: { type: String, required: true }, // "10:00"
-  },
-  durationMins: { type: Number, default: 30 },
-
-  // services & pricing
-  primaryService: priceSchema, // one main line
-  addOnServices: [priceSchema], // optional extras
-  bookingFee: { type: Number, default: 0 },
-  tax: { type: Number, default: 0 },
-  discount: { type: Number, default: 0 },
-  total: { type: Number, default: 0 },
-
-  // patient-facing form
-  contact: {
-    firstName: String,
-    lastName: String,
-    email: String,
-    phone: String,
-  },
-  selectedPatientId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "PatientProfile",
-  }, // for family accounts
-  symptoms: String,
-  reasonForVisit: String,
-  attachments: [attachmentSchema],
-
-  // payment
-  payment: paymentSchema,
-
-  // lifecycle
-  status: {
-    type: String,
-    enum: ["scheduled", "completed", "cancelled", "no_show"],
-    default: "scheduled",
-  },
-  bookingNumber: { type: String, unique: true }, // e.g., "DCRA12565"
-  rescheduleHistory: [
-    {
-      from: { date: Date, time: String },
-      to: { date: Date, time: String },
-      changedAt: { type: Date, default: Date.now },
+const AppointmentSchema = new mongoose.Schema(
+  {
+    bookingNo: { type: String, unique: true },
+    doctorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+      // Only enforce a doctor for in-person or home-visit appointments
+      required: function () {
+        return (
+          this.appointmentType === "clinic" ||
+          this.appointmentType === "home_visit"
+        );
+      },
     },
-  ],
+    clinicId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Clinic",
+      // Require clinic only when it's an in-person or home-visit appointment
+      required: function () {
+        return (
+          this.appointmentType === "clinic" ||
+          this.appointmentType === "home_visit"
+        );
+      },
+    },
+    video: VideoSchema,
+    patientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Patient",
+      required: function () {
+        // require a patient only when it's not a 'held' draft
+        return this.status !== "held";
+      },
+    },
+    appointmentType: {
+      type: String,
+      enum: ["clinic", "video", "audio", "chat", "home_visit"],
+      required: true,
+    },
+    start: { type: Date, required: true },
+    end: { type: Date, required: true },
+    status: {
+      type: String,
+      enum: ["held", "confirmed", "cancelled", "rescheduled"],
+      default: "held",
+    },
+    payment: PaymentSchema,
+    holdExpiresAt: Date, // for temporary holds before payment
+  },
+  { timestamps: true }
+);
 
-  createdAt: { type: Date, default: Date.now },
+// Prevent double booking: unique on confirmed/held active slots
+AppointmentSchema.index(
+  { doctorId: 1, clinicId: 1, start: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: { $in: ["held", "confirmed"] } },
+  },
+  { holdExpiresAt: 1 },
+  { expireAfterSeconds: 0, partialFilterExpression: { status: "held" } }
+);
+
+AppointmentSchema.path("end").validate(function (v) {
+  return v > this.start;
+}, "end must be after start");
+
+AppointmentSchema.path("clinicId").validate(function (v) {
+  const needsClinic = ["clinic", "home_visit"].includes(this.appointmentType);
+  return needsClinic ? !!v : true;
+}, "clinicId is required for this appointment type");
+
+AppointmentSchema.pre("validate", function (next) {
+  if (!this.bookingNo) {
+    this.bookingNo =
+      "DCR" + Math.random().toString(36).slice(2, 8).toUpperCase();
+  }
+  next();
 });
 
-export default mongoose.model("Appointment", appointmentSchema);
+export default mongoose.model("Appointment", AppointmentSchema);

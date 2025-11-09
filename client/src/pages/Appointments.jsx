@@ -1,6 +1,8 @@
 // src/pages/Appointments.jsx
-import { useState } from "react";
-import { Container } from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
+import { Box, CircularProgress, Container, Typography } from "@mui/material";
+import { useLocation } from "react-router-dom";
+import api from "../api/axios.js";
 
 // Step components
 import StepOneTypeClinic from "../components/appointments/StepOneTypeClinic";
@@ -9,55 +11,79 @@ import StepThreeBasicInfo from "../components/appointments/StepThreeBasicInfo";
 import StepFourPayment from "../components/appointments/StepFourPayment";
 import StepFiveConfirmation from "../components/appointments/StepFiveConfirmation";
 
-/* -------------------- STATIC MOCKS FOR DEMO -------------------- */
-const MOCK_DOCTOR = {
-  _id: "doc1",
-  name: "Dr. Michael Brown",
-  specialty: "Psychologist",
-  rating: 5.0,
-  photoUrl: "", // keep empty to avoid external fetch
-  addressLine: "5th Street – 1011 W 5th St, Suite 120, Austin, TX 78703",
-};
-
-const MOCK_CLINICS = [
-  {
-    _id: "c1",
-    name: "AllCare Family Medicine",
-    address: "3343 Private Lane",
-    city: "Valdosta",
-    state: "",
-    logoUrl: "",
-    distanceLabel: "500 Meters",
-  },
-  {
-    _id: "c2",
-    name: "Vitalplus Clinic",
-    address: "4223 Pleasant Hill Road",
-    city: "Miami",
-    state: "FL 33169",
-    logoUrl: "",
-    distanceLabel: "12 KM",
-  },
-  {
-    _id: "c3",
-    name: "Wellness Path Chiropractic",
-    address: "2394 Sunset Blvd",
-    city: "Austin",
-    state: "TX",
-    logoUrl: "",
-    distanceLabel: "3.1 KM",
-  },
-];
+/* -------------------- HELPERS -------------------- */
+function useQuery() {
+  const { search } = useLocation();
+  return useMemo(() => new URLSearchParams(search), [search]);
+}
 
 /* -------------------- PAGE -------------------- */
 export default function Appointments() {
+  const q = useQuery();
+
+  // URL presets
+  const doctorIdFromUrl = q.get("doctor") || ""; // optional
+  const initialTypeFromUrl = q.get("type") || "clinic";
+  const initialClinicFromUrl = q.get("clinic") || "";
+
+  // Step control
   const [step, setStep] = useState(1);
 
-  // collected data across steps (static demo)
+  // Collected data across steps
   const [s1, setS1] = useState(null); // { appointmentType, clinicId, clinicMeta }
-  const [s2, setS2] = useState(null); // { dateISO, time }
+  const [s2, setS2] = useState(null); // { dateISO, time, (optionally slotId/appointmentId later) }
   const [s3, setS3] = useState(null); // basic info form payload
-  const [bookingNo] = useState("DCRA12565"); // static booking number for demo
+  const [appointmentId, setAppointmentId] = useState(null); // set after HOLD at Step 2 (later)
+  const [bookingNo, setBookingNo] = useState(null); // set after HOLD/CONFIRM (later)
+  const [services, setServices] = useState([]); // list from /api/services or /api/services/doctor/:id
+  const [selectedService, setSelectedService] = useState(null); // one object {code,name,durationMins,addOns:[...]}
+  const [selectedAddOns, setSelectedAddOns] = useState([]);
+  // Doctor data (from DB)
+  const [doctor, setDoctor] = useState(null);
+  const [loadingDoctor, setLoadingDoctor] = useState(Boolean(doctorIdFromUrl));
+  const [errorDoctor, setErrorDoctor] = useState("");
+  const [videoDetails, setVideoDetails] = useState(null);
+  // Fetch doctor if a doctorId is provided in URL
+  useEffect(() => {
+    const fetchDoctor = async () => {
+      if (!doctorIdFromUrl) return; // not required; skip
+      setLoadingDoctor(true);
+      setErrorDoctor("");
+      try {
+        const { data } = await api.get(`/doctors/${doctorIdFromUrl}`);
+        setDoctor(data);
+      } catch (e) {
+        setErrorDoctor(e?.response?.data?.error || "Failed to load doctor.");
+      } finally {
+        setLoadingDoctor(false);
+      }
+    };
+    fetchDoctor();
+  }, [doctorIdFromUrl]);
+
+  // after fetching services:
+  useEffect(() => {
+    const loadServices = async () => {
+      const res = doctorIdFromUrl
+        ? await api.get(`/services/doctor/${doctorIdFromUrl}`)
+        : await api.get(`/services`);
+      const svcs = Array.isArray(res.data) ? res.data : [];
+      setServices(svcs);
+      if (svcs.length) {
+        setSelectedService(svcs[0]);
+        setSelectedAddOns(
+          svcs[0].addOns?.length ? [svcs[0].addOns[0].code] : []
+        );
+      }
+    };
+    loadServices().catch(console.error);
+  }, [doctorIdFromUrl]);
+
+  // helper to toggle add-ons (optional)
+  const toggleAddOn = (code) =>
+    setSelectedAddOns((a) =>
+      a.includes(code) ? a.filter((x) => x !== code) : [...a, code]
+    );
 
   const goBack = () => setStep((x) => Math.max(1, x - 1));
 
@@ -66,7 +92,11 @@ export default function Appointments() {
       setS1(payload);
       setStep(2);
     } else if (step === 2) {
+      // payload can later include slot info + hold response
+      // e.g., { dateISO, time, appointmentId, bookingNo }
       setS2(payload);
+      if (payload?.appointmentId) setAppointmentId(payload.appointmentId);
+      if (payload?.bookingNo) setBookingNo(payload.bookingNo);
       setStep(3);
     } else if (step === 3) {
       setS3(payload);
@@ -75,16 +105,20 @@ export default function Appointments() {
   };
 
   const handlePay = () => {
-    // static confirmation for demo
+    // In a real flow you'll conf
+    if (confirmed?.bookingNo) setBookingNo(confirmed.bookingNo);
+    if (confirmed?.video) setVideoDetails(confirmed.video);
+    // setBookingNo(serverBookingNo);
     setStep(5);
   };
 
   const handleStartNew = () => {
-    // reset everything for a fresh demo cycle
     setStep(1);
     setS1(null);
     setS2(null);
     setS3(null);
+    setAppointmentId(null);
+    setBookingNo(null);
   };
 
   // helpers for labels
@@ -93,19 +127,66 @@ export default function Appointments() {
       ? `${s2.time} , ${new Date(s2.dateISO).getDate()}, Oct 2025`
       : "10:00 - 11:00 AM, 15, Oct 2025";
 
-  const clinicName = s1?.clinicMeta?.name || "Wellness Path";
+  const clinicName = s1?.clinicMeta?.name || "Selected Clinic";
+
+  // Decide which doctor object to use:
+  // - If URL had doctorId and fetch succeeded → use DB doctor
+  // - Else, allow Step 1 to render with minimal doctor info (or null)
+  const doctorForStep = doctorIdFromUrl ? doctor : doctor || null;
+
+  // Loading state when doctorId is present
+  if (doctorIdFromUrl && loadingDoctor) {
+    return (
+      <Container maxWidth="md" sx={{ py: 6 }}>
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          <CircularProgress size={24} />
+          <Typography>Loading doctor…</Typography>
+        </Box>
+      </Container>
+    );
+  }
+
+  // Error state (doctor fetch)
+  if (doctorIdFromUrl && errorDoctor) {
+    return (
+      <Container maxWidth="md" sx={{ py: 6 }}>
+        <Typography color="error">{errorDoctor}</Typography>
+      </Container>
+    );
+  }
+  const handleSelectService = (svc) => {
+    setSelectedService(svc);
+    // choose your behavior:
+    // A) clear all add-ons on service change
+    setSelectedAddOns([]);
+
+    // or B) default to first add-on if present
+    // setSelectedAddOns(svc?.addOns?.length ? [svc.addOns[0].code] : []);
+  };
+
+  // Persist appointment picks (updates whenever key picks change)
+  useEffect(() => {
+    const payload = {
+      step: step,
+      s1, // type + clinic chosen
+      s2, // date/time (+ hold ids if present)
+      selectedService,
+      selectedAddOns,
+      appointmentId,
+      bookingNo,
+    };
+    localStorage.setItem("he.booking", JSON.stringify(payload));
+  }, [step, s1, s2, selectedService, selectedAddOns, appointmentId, bookingNo]);
 
   return (
     <Container maxWidth="md" sx={{ py: 3 }}>
       {/* STEP 1: Appointment Type + Clinic */}
       {step === 1 && (
         <StepOneTypeClinic
-          doctor={MOCK_DOCTOR}
-          clinics={MOCK_CLINICS}
-          initialType="clinic"
-          initialClinicId="c2"
-          loading={false}
-          error=""
+          doctor={doctorForStep}
+          // ⬇️ Do NOT pass static clinics anymore; StepOne will fetch from /api/clinics when needed
+          initialType={initialTypeFromUrl}
+          initialClinicId={initialClinicFromUrl}
           onBack={() => window.history.back()}
           onNext={goNext}
         />
@@ -114,11 +195,31 @@ export default function Appointments() {
       {/* STEP 2: Date & Time */}
       {step === 2 && (
         <StepTwoDateTime
-          doctor={MOCK_DOCTOR}
+          doctor={doctorForStep}
+          services={services} // NEW
+          selectedService={selectedService} // NEW
+          selectedAddOns={selectedAddOns} // NEW
+          onSelectService={handleSelectService} // NEW
+          onToggleAddOn={toggleAddOn} // NEW
           summary={{
-            service: "Cardiology (30 Mins)",
-            addOnService: "Echocardiograms",
+            service: selectedService
+              ? `${selectedService.name} (${selectedService.durationMins} Mins)`
+              : "Cardiology (30 Mins)",
+            addOnService:
+              selectedService && selectedAddOns.length
+                ? selectedService.addOns?.find(
+                    (a) => a.code === selectedAddOns[0]
+                  )?.name || ""
+                : "Echocardiograms",
             appointmentType: `Clinic (${clinicName})`,
+          }}
+          context={{
+            appointmentType: s1?.appointmentType,
+            clinicId: s1?.clinicId || null,
+            doctorId: s1?.doctorId || null,
+            doctorMeta: s1?.doctorMeta || null,
+            serviceCode: selectedService?.code || "CARDIO_30",
+            addOns: selectedAddOns,
           }}
           onBack={goBack}
           onNext={goNext}
@@ -127,11 +228,20 @@ export default function Appointments() {
 
       {/* STEP 3: Basic Information */}
       {step === 3 && (
+        // Appointments.jsx (when rendering StepThreeBasicInfo)
         <StepThreeBasicInfo
-          doctor={MOCK_DOCTOR}
+          doctor={doctorForStep}
           summary={{
-            service: "Cardiology (30 Mins)",
-            addOnService: "Echocardiograms",
+            service: selectedService
+              ? `${selectedService.name} (${selectedService.durationMins} Mins)`
+              : "—",
+            addOnService:
+              selectedService && selectedAddOns.length
+                ? selectedService.addOns
+                    ?.filter((a) => selectedAddOns.includes(a.code))
+                    .map((a) => a.name)
+                    .join(", ")
+                : "—",
             dateLabel,
             appointmentType: `Clinic (${clinicName})`,
           }}
@@ -143,41 +253,66 @@ export default function Appointments() {
       {/* STEP 4: Payment */}
       {step === 4 && (
         <StepFourPayment
-          doctor={MOCK_DOCTOR}
-          summary={{
-            dateLabel,
-            appointmentType: `Clinic (${clinicName})`,
-          }}
-          price={{
-            serviceLabel: "Echocardiograms",
-            serviceAmount: 200,
-            bookingFee: 20,
-            tax: 18,
-            discount: -15,
-            total: 320,
-            currency: "USD",
-          }}
+          doctor={doctorForStep}
+          summary={{ dateLabel, appointmentType: `Clinic (${clinicName})` }}
+          appointmentId={appointmentId}
+          bookingNo={bookingNo}
+          serviceCode={selectedService?.code || "CARDIO_30"}
+          addOns={selectedAddOns || []}
+          appointmentType={s1?.appointmentType || "clinic"}
+          patientDraft={s3}
           onBack={goBack}
-          onPay={handlePay}
+          onPay={(confirmed) => {
+            if (confirmed?.bookingNo) setBookingNo(confirmed.bookingNo);
+            // capture full video details (joinUrl + pin)
+            if (confirmed?.video) {
+              setVideoDetails(confirmed.video);
+              setS2((prev) => ({
+                ...(prev || {}),
+                videoJoinUrl: confirmed.video.joinUrl,
+              }));
+            }
+            setStep(5);
+          }}
         />
       )}
 
       {/* STEP 5: Confirmation */}
       {step === 5 && (
         <StepFiveConfirmation
-          doctor={MOCK_DOCTOR}
+          doctor={doctorForStep}
+          video={videoDetails}
           summary={{
-            service: "Cardiology (30 Mins)",
-            addOnService: "Echocardiograms",
+            service: selectedService?.name || "—",
+            addOnService: selectedAddOns?.length
+              ? selectedAddOns
+                  .map(
+                    (c) =>
+                      selectedService?.addOns?.find((a) => a.code === c)?.name
+                  )
+                  .filter(Boolean)
+                  .join(", ")
+              : "—",
             dateLabel,
-            appointmentType: "Clinic",
+            appointmentType:
+              s1?.appointmentType === "video"
+                ? "Video"
+                : `Clinic (${clinicName})`,
             clinicName,
-            clinicLinkLabel: "View Location",
+            clinicLinkLabel:
+              s1?.appointmentType === "video" ? "Join Video" : "View Location",
+            // 👇 If your backend returned the appointment object:
+            videoJoinUrl: s2?.videoJoinUrl, // or keep it in state after /confirm
           }}
-          bookingNumber={bookingNo}
+          bookingNumber={bookingNo || "TBD"}
           onBack={goBack}
-          onReschedule={() => alert("Static demo: reschedule")}
-          onAddCalendar={() => alert("Static demo: add to calendar")}
+          onAddCalendar={() =>
+            window.open(videoDetails?.joinUrl || "#", "_blank")
+          }
+          // reuse button
+          onReschedule={() => {
+            /* ... */
+          }}
           onStartNew={handleStartNew}
         />
       )}

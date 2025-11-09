@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import {
   Avatar,
   Box,
@@ -6,256 +7,146 @@ import {
   CardContent,
   Chip,
   Divider,
-  Grid,
   Stack,
   Typography,
 } from "@mui/material";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 
 export default function StepFiveConfirmation({
-  doctor = {
-    name: "Dr. Michael Brown",
-    specialty: "Psychologist",
-    rating: 5.0,
-    photoUrl: "",
-  },
-  summary = {
-    service: "Cardiology (30 Mins)",
-    addOnService: "Echocardiograms",
-    dateLabel: "10:00 - 11:00 AM, 15, Oct 2025",
-    appointmentType: "Clinic",
-    clinicName: "Wellness Path",
-    clinicLinkLabel: "View Location",
-  },
-  bookingNumber = "DCRA12565",
+  doctor,
+  summary,
+  bookingNumber,
   onBack,
   onReschedule,
   onAddCalendar,
   onStartNew,
+  video,
 }) {
+  const d = doctor ?? {};
+  const s = summary ?? {};
+  const v = video ?? {};
+
   return (
     <Card
       sx={{ borderRadius: 3, overflow: "hidden", border: "1px solid #EAECF0" }}
     >
       <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-        <Grid container spacing={2}>
-          {/* LEFT */}
-          <Grid item xs={12} md={8.2}>
-            {/* success header */}
-            <Box
-              sx={{
-                border: "1px solid #E5E7EB",
-                borderRadius: 2,
-                p: 2,
-                mb: 2,
-                bgcolor: "#F8FFF8",
-              }}
-            >
-              <Stack direction="row" alignItems="center" spacing={1.25}>
-                <CheckCircleRoundedIcon sx={{ color: "#16A34A" }} />
-                <Typography sx={{ fontWeight: 800 }}>
-                  Booking Confirmed
+        {/* Header */}
+        <Box
+          sx={{
+            border: "1px solid #E5E7EB",
+            borderRadius: 2,
+            p: 2,
+            mb: 2,
+            bgcolor: "#fff",
+          }}
+        >
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Avatar
+              src={d.photoUrl || ""}
+              alt={d.name || "Doctor"}
+              sx={{ width: 56, height: 56 }}
+            />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography sx={{ fontWeight: 800 }} noWrap>
+                  {d.name || "Healthcare Provider"}
                 </Typography>
+                {d.rating ? (
+                  <Chip
+                    size="small"
+                    label={Number(d.rating).toFixed(1)}
+                    color="warning"
+                    sx={{ height: 22 }}
+                  />
+                ) : null}
               </Stack>
+              <Typography sx={{ color: "primary.main", fontSize: 13 }} noWrap>
+                {d.specialty || "Doctor"}
+              </Typography>
+              <Typography sx={{ color: "text.secondary", fontSize: 12 }} noWrap>
+                {d.addressLine || ""}
+              </Typography>
+            </Box>
+          </Stack>
+        </Box>
 
-              <Stack
-                direction="row"
-                spacing={1.5}
-                alignItems="center"
-                sx={{ mt: 1.5 }}
-              >
-                <Avatar
-                  src={doctor.photoUrl || ""}
-                  alt={doctor.name}
-                  sx={{ width: 40, height: 40 }}
+        {/* Confirmation body */}
+        <Box
+          sx={{
+            border: "1px solid #E5E7EB",
+            borderRadius: 2,
+            p: 2,
+            bgcolor: "#fff",
+          }}
+        >
+          <Typography sx={{ fontWeight: 800, mb: 1 }}>
+            Booking Confirmed ✅
+          </Typography>
+          <Typography sx={{ color: "text.secondary", mb: 2 }}>
+            Your appointment has been scheduled successfully.
+          </Typography>
+
+          <Stack spacing={1.25} sx={{ mb: 2 }}>
+            <Row k="Booking No." v={bookingNumber || "—"} />
+            <Row k="Service" v={s.service || "—"} />
+            <Row k="Add-on(s)" v={s.addOnService || "—"} />
+            <Row k="Date & Time" v={s.dateLabel || "—"} />
+            <Row k="Appointment type" v={s.appointmentType || "—"} />
+            {s.clinicName ? <Row k="Clinic" v={s.clinicName} /> : null}
+            {v.joinUrl && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Typography sx={{ fontWeight: 700, mb: 1 }}>
+                  Video Call Info
+                </Typography>
+                <Row
+                  k="Join Link"
+                  v={
+                    <a href={v.joinUrl} target="_blank" rel="noreferrer">
+                      {v.joinUrl}
+                    </a>
+                  }
                 />
-                <Typography sx={{ color: "text.secondary" }}>
-                  Your Booking has been Confirmed with <b>{doctor.name}</b>{" "}
-                  &nbsp; be on time before <b>15 Mins</b> From the appointment
-                  Time
-                </Typography>
-              </Stack>
-            </Box>
+                {v.pin && (
+                  <Row
+                    k="PIN"
+                    v={
+                      <span style={{ fontWeight: 700, color: "#1976d2" }}>
+                        {v.pin}
+                      </span>
+                    }
+                  />
+                )}
+              </>
+            )}
+          </Stack>
 
-            {/* booking info card */}
-            <Box
-              sx={{
-                border: "1px solid #E5E7EB",
-                borderRadius: 2,
-                p: 2,
-                mb: 2,
-                bgcolor: "#fff",
-              }}
-            >
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-                sx={{ mb: 1 }}
-              >
-                <Typography sx={{ fontWeight: 700 }}>Booking Info</Typography>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={onReschedule}
-                  sx={{ textTransform: "none" }}
-                >
-                  Reschedule
-                </Button>
-              </Stack>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                    Service
-                  </Typography>
-                  <Typography sx={{ fontWeight: 700 }}>
-                    {summary.service}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                    Additional Service
-                  </Typography>
-                  <Typography sx={{ fontWeight: 700 }}>
-                    {summary.addOnService}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                    Date & Time
-                  </Typography>
-                  <Typography sx={{ fontWeight: 700 }}>
-                    {summary.dateLabel}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                    Appointment type
-                  </Typography>
-                  <Typography sx={{ fontWeight: 700 }}>
-                    {summary.appointmentType}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                    Clinic Name & Location
-                  </Typography>
-                  <Typography sx={{ fontWeight: 700 }}>
-                    {summary.clinicName}&nbsp;&nbsp;
-                    <Button
-                      size="small"
-                      variant="text"
-                      sx={{ textTransform: "none", px: 0.5 }}
-                    >
-                      {summary.clinicLinkLabel}
-                    </Button>
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box>
+          <Divider sx={{ my: 2 }} />
 
-            {/* assistance card */}
-            <Box
-              sx={{
-                border: "1px solid #E5E7EB",
-                borderRadius: 2,
-                p: 2,
-                bgcolor: "#fff",
-              }}
-            >
-              <Typography sx={{ fontWeight: 700, mb: 0.5 }}>
-                Need Our Assistance
-              </Typography>
-              <Typography sx={{ color: "text.secondary", fontSize: 14, mb: 1 }}>
-                Call us in case you face any Issue on Booking / Cancellation
-              </Typography>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <Button variant="outlined" onClick={onReschedule}>
+              Reschedule
+            </Button>
+            <Button variant="outlined" onClick={onAddCalendar}>
+              Add to Calendar
+            </Button>
+            <Button variant="contained" onClick={onStartNew}>
+              Book Another Appointment
+            </Button>
+            {s.videoJoinUrl ? (
               <Button
-                variant="outlined"
-                size="small"
-                sx={{ textTransform: "none" }}
+                variant="contained"
+                color="primary"
+                onClick={() => window.open(s.videoJoinUrl, "_blank")}
               >
-                Call Us
+                Join Video Call
               </Button>
-            </Box>
-          </Grid>
-
-          {/* RIGHT */}
-          <Grid item xs={12} md={3.8}>
-            <Box
-              sx={{
-                border: "1px solid #E5E7EB",
-                borderRadius: 2,
-                p: 2,
-                bgcolor: "#fff",
-              }}
-            >
-              <Typography
-                align="center"
-                sx={{ fontSize: 13, color: "text.secondary" }}
-              >
-                Booking Number
-              </Typography>
-              <Box sx={{ display: "grid", placeItems: "center", my: 1 }}>
-                <Chip
-                  label={bookingNumber}
-                  sx={{
-                    bgcolor: "#E9FCEB",
-                    color: "#047857",
-                    fontWeight: 700,
-                    borderRadius: 1,
-                  }}
-                />
-              </Box>
-
-              {/* QR placeholder */}
-              <Box
-                sx={{
-                  my: 2,
-                  mx: "auto",
-                  width: 150,
-                  height: 150,
-                  borderRadius: 2,
-                  bgcolor: "#F3F4F6",
-                  display: "grid",
-                  placeItems: "center",
-                  fontWeight: 700,
-                  color: "text.secondary",
-                }}
-                aria-label="QR placeholder"
-              >
-                QR
-              </Box>
-
-              <Typography
-                align="center"
-                sx={{ color: "text.secondary", fontSize: 13, mb: 2 }}
-              >
-                Scan this QR Code to Download the details of Appointment
-              </Typography>
-
-              <Stack spacing={1}>
-                <Button
-                  variant="contained"
-                  onClick={onAddCalendar}
-                  sx={{ textTransform: "none" }}
-                >
-                  Add To Calendar
-                </Button>
-                <Button
-                  variant="contained"
-                  color="info"
-                  onClick={onStartNew}
-                  sx={{ textTransform: "none", bgcolor: "#0EA5E9" }}
-                >
-                  Start New Booking
-                </Button>
-              </Stack>
-            </Box>
-          </Grid>
-        </Grid>
+            ) : null}
+          </Stack>
+        </Box>
       </CardContent>
 
-      {/* Footer bar */}
+      {/* Footer */}
       <Box
         sx={{
           px: { xs: 2, md: 3 },
@@ -275,3 +166,24 @@ export default function StepFiveConfirmation({
     </Card>
   );
 }
+
+function Row({ k, v }) {
+  return (
+    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+      <Typography sx={{ color: "text.secondary" }}>{k}</Typography>
+      <Typography sx={{ fontWeight: 700 }}>{v}</Typography>
+    </Box>
+  );
+}
+Row.propTypes = { k: PropTypes.string, v: PropTypes.node };
+
+StepFiveConfirmation.propTypes = {
+  doctor: PropTypes.object,
+  summary: PropTypes.object,
+  bookingNumber: PropTypes.string,
+  onBack: PropTypes.func,
+  onReschedule: PropTypes.func,
+  onAddCalendar: PropTypes.func,
+  onStartNew: PropTypes.func,
+  video: PropTypes.object,
+};
