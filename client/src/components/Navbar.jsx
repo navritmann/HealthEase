@@ -1,7 +1,8 @@
+// src/components/Navbar.jsx
 import React from "react";
 import { Box, Stack, Button, Link as MLink } from "@mui/material";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const links = ["Home", "About", "Services", "Doctor", "FAQ"];
 
@@ -17,10 +18,33 @@ const scrollToId = (id) => {
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleNav = (label) => {
+    const key = label.toLowerCase();
+
+    if (key === "about") {
+      // ✅ go to About.jsx route
+      navigate("/about");
+      return;
+    }
+
+    if (key === "home") {
+      navigate("/");
+      return;
+    }
+
+    // For in-page sections (services/doctor/faq):
+    if (location.pathname !== "/") {
+      // Navigate home first, then scroll after mount
+      navigate("/", { state: { anchor: key } });
+    } else {
+      scrollToId(key);
+    }
+  };
 
   return (
     <Box
-      // FIXED, CENTERED, ABOVE ALL
       sx={{
         position: "fixed",
         top: 16,
@@ -30,7 +54,6 @@ export default function Navbar() {
       }}
     >
       <Box
-        // the pill
         sx={{
           display: "flex",
           alignItems: "center",
@@ -85,7 +108,7 @@ export default function Navbar() {
             <MLink
               key={item}
               underline="none"
-              onClick={() => scrollToId(item.toLowerCase())}
+              onClick={() => handleNav(item)}
               sx={{
                 cursor: "pointer",
                 color: i === 0 ? "#0aa07a" : "#222",
@@ -100,7 +123,6 @@ export default function Navbar() {
           ))}
         </Stack>
 
-        {/* CTA */}
         <Button
           variant="contained"
           endIcon={<ArrowForwardRoundedIcon />}
