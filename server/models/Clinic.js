@@ -1,13 +1,15 @@
-// models/Clinic.js
 import mongoose from "mongoose";
-const clinicSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  address: String,
-  city: String,
-  state: String,
-  zip: String,
-  geo: { lat: Number, lng: Number }, // optional
-  phone: String,
-  logoUrl: String,
-});
-export default mongoose.model("Clinic", clinicSchema);
+const ClinicSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    address: String,
+    city: String,
+    state: String,
+    logoUrl: String,
+    distanceLabel: String,
+    doctors: [{ type: mongoose.Schema.Types.ObjectId, ref: "Doctor" }],
+  },
+  { timestamps: true }
+);
+
+export default mongoose.model("Clinic", ClinicSchema);

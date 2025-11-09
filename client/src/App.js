@@ -9,6 +9,7 @@ import AdminDashboard from "./pages/Admin/AdminDashboard";
 import AdminAppointments from "./pages/Admin/Appointments";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
+import VideoRoom from "./pages/VideoRoom";
 import About from "./pages/About";
 
 export default function App() {
@@ -37,6 +38,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Appointments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/video/:roomId"
+          element={
+            <ProtectedRoute>
+              <VideoRoom />
             </ProtectedRoute>
           }
         />
