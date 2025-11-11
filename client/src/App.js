@@ -19,6 +19,7 @@ import Services from "./pages/Admin/Services";
 import ServicesFront from "./pages/Services";
 import DoctorsFront from "./pages/Doctors";
 import DoctorDetails from "./pages/DoctorDetails";
+import FAQ from "./pages/FAQ";
 
 export default function App() {
   return (
@@ -30,6 +31,8 @@ export default function App() {
         <Route path="/services" element={<ServicesFront />} />
         <Route path="/doctors" element={<DoctorsFront />} />
         <Route path="/doctor/:id" element={<DoctorDetails />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/faq" element={<FAQ />} />
 
         {/* Public auth */}
         <Route path="/login" element={<Login />} />

@@ -1,47 +1,64 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Container,
-  Grid,
   Stack,
   Typography,
-  Paper,
-  Button,
   Breadcrumbs,
   Link as MLink,
-  CircularProgress,
-  Rating,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Divider,
+  Button,
+  Grid,
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import axios from "axios";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
 
-export default function Doctors() {
+export default function FAQ() {
   const navigate = useNavigate();
-  const [doctors, setDoctors] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const handleChange = (panel) => (_e, isExpanded) =>
+    setExpanded(isExpanded ? panel : false);
 
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/doctors");
-        setDoctors(res.data);
-      } catch (err) {
-        console.error("Error fetching doctors:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDoctors();
-  }, []);
-
-  // ✅ dummy fallback avatar (medical-style)
-  const fallbackImage =
-    "https://cdn-icons-png.flaticon.com/512/5003/5003090.png";
+  const faqs = [
+    {
+      id: "f1",
+      q: "How do I book an appointment with a doctor?",
+      a: "You can easily book an appointment by visiting our 'Appointments' page, selecting a doctor, and choosing an available time slot. Confirmation will be sent to your registered email.",
+    },
+    {
+      id: "f2",
+      q: "Do I need to create an account to book appointments?",
+      a: "Yes. Creating an account allows us to securely store your medical records and appointment history, ensuring a seamless healthcare experience.",
+    },
+    {
+      id: "f3",
+      q: "Can I reschedule or cancel my appointment?",
+      a: "Absolutely. You can reschedule or cancel your appointment from your dashboard before the scheduled time. Cancellation policies may vary by doctor or clinic.",
+    },
+    {
+      id: "f4",
+      q: "What payment methods are accepted?",
+      a: "We accept all major credit and debit cards, as well as secure online payments through trusted gateways.",
+    },
+    {
+      id: "f5",
+      q: "Do you offer telemedicine or online consultations?",
+      a: "Yes. Many of our doctors offer virtual consultations via our secure video platform. You can select 'Online Appointment' when booking.",
+    },
+    {
+      id: "f6",
+      q: "Is my personal information safe on HealthEase?",
+      a: "Your privacy is our priority. All user data is encrypted and stored securely. We follow HIPAA-compliant data protection standards.",
+    },
+  ];
 
   return (
     <>
@@ -52,9 +69,12 @@ export default function Doctors() {
         sx={{
           position: "relative",
           height: { xs: 360, md: 460 },
-          backgroundImage: `url(/images/doctors-hero.jpg)`,
+          backgroundImage: `url(https://img.freepik.com/free-photo/doctor-holding-patient-hand_53876-14957.jpg)`,
           backgroundPosition: "center",
           backgroundSize: "cover",
+          display: "flex",
+          alignItems: "center",
+          color: "#fff",
         }}
       >
         <Box
@@ -70,12 +90,9 @@ export default function Doctors() {
           sx={{
             position: "relative",
             zIndex: 1,
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
           }}
         >
-          <Stack spacing={2} sx={{ color: "#fff" }}>
+          <Stack spacing={2}>
             <Breadcrumbs
               aria-label="breadcrumb"
               sx={{
@@ -92,7 +109,7 @@ export default function Doctors() {
                 Home
               </MLink>
               <Typography component="span" sx={{ opacity: 0.9, fontSize: 13 }}>
-                Doctors
+                FAQ
               </Typography>
             </Breadcrumbs>
 
@@ -105,7 +122,8 @@ export default function Doctors() {
                 textShadow: "0 2px 16px rgba(0,0,0,.35)",
               }}
             >
-              Meet Our <span style={{ fontStyle: "italic" }}>Specialists</span>
+              Frequently Asked{" "}
+              <span style={{ fontStyle: "italic" }}>Questions</span>
             </Typography>
 
             <Typography
@@ -115,123 +133,87 @@ export default function Doctors() {
                 fontSize: { xs: 14, md: 16 },
               }}
             >
-              Experienced professionals across multiple specialties — ready to
-              guide you on your health journey.
+              Here are answers to the most common questions about HealthEase,
+              appointments, and our services.
             </Typography>
           </Stack>
         </Container>
       </Box>
 
-      {/* ===== Doctors Grid ===== */}
-      <Box sx={{ bgcolor: "#f8fafa" }}>
-        <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
+      {/* ===== FAQ Section ===== */}
+      <Box sx={{ bgcolor: "#fff" }}>
+        <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 } }}>
+          {faqs.map((item, idx) => (
+            <Accordion
+              key={item.id}
+              expanded={expanded === item.id}
+              onChange={handleChange(item.id)}
+              disableGutters
+              elevation={0}
+              sx={{
+                mb: 1.5,
+                borderRadius: 2,
+                border: "1px solid #E4EBEF",
+                "&::before": { display: "none" },
+                boxShadow:
+                  expanded === item.id
+                    ? "0 6px 24px rgba(16,24,40,.08)"
+                    : "0 2px 6px rgba(16,24,40,.05)",
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon sx={{ color: "#0aa07a" }} />}
+              >
+                <Typography sx={{ fontWeight: 700, color: "#1d2b3a" }}>
+                  {idx + 1}. {item.q}
+                </Typography>
+              </AccordionSummary>
+              <Divider />
+              <AccordionDetails>
+                <Typography sx={{ color: "text.secondary", fontSize: 15 }}>
+                  {item.a}
+                </Typography>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </Container>
+      </Box>
+
+      {/* ===== Still Have Questions Section ===== */}
+      <Box
+        sx={{
+          bgcolor: "#f8fafa",
+          py: { xs: 6, md: 10 },
+          textAlign: "center",
+        }}
+      >
+        <Container maxWidth="sm">
           <Typography
-            align="center"
-            sx={{
-              fontWeight: 800,
-              fontSize: { xs: 24, md: 30 },
-              color: "#1d2b3a",
-              mb: { xs: 3, md: 5 },
-            }}
+            variant="h5"
+            sx={{ fontWeight: 700, color: "#0a3e57", mb: 1 }}
           >
-            Our Expert Doctors
+            Still have questions?
           </Typography>
-
-          {loading ? (
-            <Stack alignItems="center" py={5}>
-              <CircularProgress />
-            </Stack>
-          ) : doctors.length === 0 ? (
-            <Typography align="center" color="text.secondary">
-              No doctors found.
-            </Typography>
-          ) : (
-            <Grid container spacing={{ xs: 3, md: 4 }}>
-              {doctors.map((doc) => (
-                <Grid key={doc._id} item xs={12} sm={6} md={4}>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 2.5,
-                      borderRadius: 3,
-                      border: "1px solid #E4EBEF",
-                      boxShadow: "0 6px 22px rgba(16,24,40,.06)",
-                      height: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      textAlign: "center",
-                      transition: "all .3s",
-                      "&:hover": {
-                        transform: "translateY(-4px)",
-                        boxShadow: "0 12px 32px rgba(16,24,40,.12)",
-                      },
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src={doc.photoUrl || fallbackImage}
-                      alt={doc.name}
-                      onError={(e) => (e.currentTarget.src = fallbackImage)}
-                      sx={{
-                        width: 140,
-                        height: 140,
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                        mb: 2,
-                        border: "4px solid #fff",
-                        boxShadow: "0 4px 14px rgba(0,0,0,.12)",
-                        backgroundColor: "#fff",
-                      }}
-                    />
-
-                    <Typography sx={{ fontWeight: 700 }}>{doc.name}</Typography>
-                    <Typography
-                      sx={{ color: "#0aa07a", fontSize: 14, mb: 0.5 }}
-                    >
-                      {doc.specialty || "Specialty not specified"}
-                    </Typography>
-
-                    <Rating
-                      name="doctor-rating"
-                      value={doc.rating || 0}
-                      precision={0.5}
-                      readOnly
-                      size="small"
-                      sx={{ mb: 1 }}
-                    />
-
-                    <Typography
-                      sx={{
-                        color: "text.secondary",
-                        fontSize: 13,
-                        mb: 2,
-                        maxWidth: 240,
-                      }}
-                    >
-                      {doc.addressLine || "Clinic address not available"}
-                    </Typography>
-
-                    <Button
-                      variant="contained"
-                      endIcon={<ArrowForwardRoundedIcon />}
-                      onClick={() => navigate(`/doctor/${doc._id}`)}
-                      sx={{
-                        borderRadius: 999,
-                        textTransform: "none",
-                        fontWeight: 700,
-                        bgcolor: "#0aa07a",
-                        "&:hover": { bgcolor: "#088a69" },
-                      }}
-                    >
-                      View Profile
-                    </Button>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          )}
+          <Typography sx={{ color: "text.secondary", mb: 3 }}>
+            We’re here to help you. Reach out to our support team for any
+            additional queries.
+          </Typography>
+          <Button
+            variant="contained"
+            endIcon={<ArrowForwardRoundedIcon />}
+            sx={{
+              borderRadius: 999,
+              px: 3,
+              py: 1.2,
+              textTransform: "none",
+              fontWeight: 700,
+              bgcolor: "#0aa07a",
+              "&:hover": { bgcolor: "#088a69" },
+            }}
+            onClick={() => navigate("/contact")}
+          >
+            Contact Support
+          </Button>
         </Container>
       </Box>
 

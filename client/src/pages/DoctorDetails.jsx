@@ -16,6 +16,9 @@ import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../components/Navbar";
+import TwitterIcon from "@mui/icons-material/Twitter";
+import FacebookIcon from "@mui/icons-material/Facebook";
+import InstagramIcon from "@mui/icons-material/Instagram";
 
 export default function DoctorDetails() {
   const { id } = useParams();
@@ -255,6 +258,164 @@ export default function DoctorDetails() {
             </Grid>
           </Grid>
         </Container>
+      </Box>
+
+      <Box sx={{ bgcolor: "#fff", borderTop: "1px solid #E9EEF3" }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
+          <Grid container spacing={{ xs: 4, md: 6 }}>
+            {/* Col 1: Logo + blurb + social */}
+            <Grid item xs={12} md={4}>
+              <Stack spacing={1.5}>
+                <Stack direction="row" spacing={1.25} alignItems="center">
+                  <Box
+                    component="img"
+                    src="/images/logo.png"
+                    alt="HealthEase"
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      objectFit: "contain",
+                      borderRadius: 1,
+                    }}
+                  />
+                  <Typography sx={{ fontWeight: 800, color: "#0aa07a" }}>
+                    Health<span style={{ color: "#111" }}>Ease</span>
+                  </Typography>
+                </Stack>
+                <Typography sx={{ color: "text.secondary", fontSize: 14 }}>
+                  At Health Ease, we believe that good health should be simple,
+                  accessible, and compassionate. Combining advanced healthcare
+                  technology with a caring human touch, we make your journey to
+                  better health easier and more comfortable.
+                </Typography>
+                <Stack direction="row" spacing={1.5} sx={{ mt: 0.5 }}>
+                  <MLink
+                    href="#"
+                    sx={{ color: "#0a3e57" }}
+                    aria-label="Twitter"
+                  >
+                    <TwitterIcon fontSize="small" />
+                  </MLink>
+                  <MLink
+                    href="#"
+                    sx={{ color: "#0a3e57" }}
+                    aria-label="Facebook"
+                  >
+                    <FacebookIcon fontSize="small" />
+                  </MLink>
+                  <MLink
+                    href="#"
+                    sx={{ color: "#0a3e57" }}
+                    aria-label="Instagram"
+                  >
+                    <InstagramIcon fontSize="small" />
+                  </MLink>
+                </Stack>
+              </Stack>
+            </Grid>
+
+            {/* Col 2: Quick Links */}
+            <Grid item xs={12} sm={6} md={2.5}>
+              <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+                Quick Links
+              </Typography>
+              <Stack spacing={1}>
+                {[
+                  { label: "Home", to: "/" },
+                  { label: "About Us", to: "/about" },
+                  { label: "Services", to: "/#services" },
+                  { label: "Doctors & Specialists", to: "/#doctors" },
+                  { label: "FAQs", to: "/#faq" },
+                  { label: "Blog", to: "#" },
+                  { label: "Contact Us", to: "/contact" },
+                ].map((l) => (
+                  <MLink
+                    key={l.label}
+                    component={RouterLink}
+                    to={l.to}
+                    underline="none"
+                    sx={{
+                      color: "text.secondary",
+                      fontSize: 14,
+                      "&:hover": { color: "#0aa07a" },
+                    }}
+                  >
+                    {l.label}
+                  </MLink>
+                ))}
+              </Stack>
+            </Grid>
+
+            {/* Col 3: Our Services */}
+            <Grid item xs={12} sm={6} md={2.5}>
+              <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+                Our Services
+              </Typography>
+              <Stack spacing={1}>
+                {[
+                  "General Consultation",
+                  "Preventive Health Checkups",
+                  "Chronic Disease Management",
+                  "Diagnostic & Lab Services",
+                  "Telemedicine",
+                  "Pharmacy Support",
+                ].map((t) => (
+                  <Typography
+                    key={t}
+                    sx={{ color: "text.secondary", fontSize: 14 }}
+                  >
+                    {t}
+                  </Typography>
+                ))}
+              </Stack>
+            </Grid>
+
+            {/* Col 4: Contact Us */}
+            <Grid item xs={12} md={3}>
+              <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+                Contact Us
+              </Typography>
+              <Stack spacing={1}>
+                <Box>
+                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
+                    Address
+                  </Typography>
+                  <Typography sx={{ fontSize: 14 }}>
+                    123 Wellness Avenue, City Name, State, ZIP
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
+                    Phone Number
+                  </Typography>
+                  <Typography sx={{ fontSize: 14 }}>
+                    +1 (000) 456-7890
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
+                    Email Address
+                  </Typography>
+                  <Typography sx={{ fontSize: 14 }}>
+                    info@healthease.com
+                  </Typography>
+                </Box>
+              </Stack>
+            </Grid>
+          </Grid>
+        </Container>
+
+        {/* copyright strip */}
+        <Box sx={{ borderTop: "1px solid #E9EEF3", py: 2 }}>
+          <Container maxWidth="lg">
+            <Typography
+              align="center"
+              sx={{ color: "text.secondary", fontSize: 13 }}
+            >
+              © {new Date().getFullYear()} Health Ease. All rights reserved.
+            </Typography>
+          </Container>
+        </Box>
       </Box>
     </>
   );

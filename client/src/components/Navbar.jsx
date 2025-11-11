@@ -41,6 +41,12 @@ export default function Navbar() {
       return;
     }
 
+    if (key === "faq") {
+      // ✅ go to faq.jsx route
+      navigate("/faq");
+      return;
+    }
+
     if (key === "home") {
       navigate("/");
       return;
