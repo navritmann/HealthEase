@@ -11,20 +11,30 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import VideoRoom from "./pages/VideoRoom";
 import About from "./pages/About";
+import Doctors from "./pages/Admin/Doctors";
+import Schedule from "./pages/Admin/Schedule";
+import Patients from "./pages/Admin/Patients";
+import Clinics from "./pages/Admin/Clinics";
+import Services from "./pages/Admin/Services";
+import ServicesFront from "./pages/Services";
+import DoctorsFront from "./pages/Doctors";
+import DoctorDetails from "./pages/DoctorDetails";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* LANDING FIRST */}
+        {/* Landing */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
+        <Route path="/services" element={<ServicesFront />} />
+        <Route path="/doctors" element={<DoctorsFront />} />
+        <Route path="/doctor/:id" element={<DoctorDetails />} />
 
         {/* Public auth */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-        {/* App */}
+        {/* App (user) */}
         <Route
           path="/dashboard"
           element={
@@ -49,8 +59,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* Admin */}
+        {/* Admin (protected) */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route
           path="/admin/dashboard"
@@ -60,7 +69,6 @@ export default function App() {
             </AdminRoute>
           }
         />
-
         <Route
           path="/admin/appointments"
           element={
@@ -69,7 +77,88 @@ export default function App() {
             </AdminRoute>
           }
         />
-
+        <Route
+          path="/admin/doctors"
+          element={
+            <AdminRoute>
+              <Doctors />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/patients"
+          element={
+            <AdminRoute>
+              <Patients />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/schedule"
+          element={
+            <AdminRoute>
+              <Schedule />
+            </AdminRoute>
+          }
+        />
+        {/* Stubs to keep sidebar links alive (optional) */}
+        <Route
+          path="/admin/patients"
+          element={
+            <div style={{ padding: 24, color: "#fff" }}>
+              Patients (coming soon)
+            </div>
+          }
+        />
+        <Route
+          path="/admin/clinics"
+          element={
+            <AdminRoute>
+              <Clinics />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/services"
+          element={
+            <AdminRoute>
+              <Services />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/departments"
+          element={
+            <div style={{ padding: 24, color: "#fff" }}>
+              Departments (coming soon)
+            </div>
+          }
+        />
+        <Route
+          path="/admin/payments"
+          element={
+            <div style={{ padding: 24, color: "#fff" }}>
+              Payments (coming soon)
+            </div>
+          }
+        />
+        <Route
+          path="/admin/inventory"
+          element={
+            <div style={{ padding: 24, color: "#fff" }}>
+              Inventory (coming soon)
+            </div>
+          }
+        />
+        <Route
+          path="/admin/messages"
+          element={
+            <div style={{ padding: 24, color: "#fff" }}>
+              Messages (coming soon)
+            </div>
+          }
+        />
+        {/* 404 */}
         <Route
           path="*"
           element={<div style={{ padding: 24 }}>Not Found</div>}

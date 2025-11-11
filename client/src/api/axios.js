@@ -1,24 +1,33 @@
 import axios from "axios";
+
 const api = axios.create({ baseURL: "http://localhost:5000/api" });
 
-// Attach token if present
-// src/api/axios.js
+// attach token on every request
+api.interceptors.request.use((config) => {
+  // ✅ prefer adminToken, but also support older keys just in case
+  const token =
+    localStorage.getItem("adminToken") ||
+    localStorage.getItem("admintoken") ||
+    localStorage.getItem("accessToken") ||
+    localStorage.getItem("token");
+
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// keep your response interceptor as-is
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const { config, response } = error;
     const code = response?.data?.code;
-
-    // refresh only for TOKEN_EXPIRED
     if (
       response?.status === 401 &&
       code === "TOKEN_EXPIRED" &&
       !config._retry
     ) {
-      // ... your refresh logic here ...
+      // ... your refresh logic (optional) ...
     }
-
-    // If NO_TOKEN, let ProtectedRoute handle redirect on protected pages.
     return Promise.reject(error);
   }
 );

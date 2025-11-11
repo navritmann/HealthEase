@@ -4,7 +4,7 @@ import { Box, Stack, Button, Link as MLink } from "@mui/material";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import { useNavigate, useLocation } from "react-router-dom";
 
-const links = ["Home", "About", "Services", "Doctor", "FAQ"];
+const links = ["Home", "About", "Services", "Doctors", "FAQ"];
 
 const scrollToId = (id) => {
   if (id === "home") {
@@ -26,6 +26,18 @@ export default function Navbar() {
     if (key === "about") {
       // ✅ go to About.jsx route
       navigate("/about");
+      return;
+    }
+
+    if (key === "services") {
+      // ✅ go to services.jsx route
+      navigate("/services");
+      return;
+    }
+
+    if (key === "doctors") {
+      // ✅ go to doctors.jsx route
+      navigate("/doctors");
       return;
     }
 
@@ -104,23 +116,46 @@ export default function Navbar() {
           alignItems="center"
           sx={{ mx: "auto" }}
         >
-          {links.map((item, i) => (
-            <MLink
-              key={item}
-              underline="none"
-              onClick={() => handleNav(item)}
-              sx={{
-                cursor: "pointer",
-                color: i === 0 ? "#0aa07a" : "#222",
-                fontWeight: i === 0 ? 700 : 500,
-                fontSize: 14,
-                whiteSpace: "nowrap",
-                "&:hover": { color: "#0aa07a" },
-              }}
-            >
-              {item}
-            </MLink>
-          ))}
+          {links.map((item) => {
+            const key = item.toLowerCase();
+            const isActive =
+              (location.pathname === "/" && key === "home") ||
+              (location.pathname === "/about" && key === "about") ||
+              (location.pathname === "/services" && key === "services") ||
+              (location.pathname === "/doctors" && key === "doctors") ||
+              (location.pathname.includes("/faq") && key === "faq");
+
+            return (
+              <MLink
+                key={item}
+                underline="none"
+                onClick={() => handleNav(item)}
+                sx={{
+                  cursor: "pointer",
+                  color: isActive ? "#0aa07a" : "#222",
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: 14,
+                  whiteSpace: "nowrap",
+                  position: "relative",
+                  "&:hover": { color: "#0aa07a" },
+                  "&::after": isActive
+                    ? {
+                        content: '""',
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        bottom: -4,
+                        height: 2,
+                        borderRadius: 2,
+                        bgcolor: "#0aa07a",
+                      }
+                    : {},
+                }}
+              >
+                {item}
+              </MLink>
+            );
+          })}
         </Stack>
 
         <Button

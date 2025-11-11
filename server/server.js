@@ -9,7 +9,7 @@ import authRoutes from "./routes/authRoutes.js";
 import appointmentRoutes from "./routes/appointments.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import clinicRoutes from "./routes/clinicRoutes.js";
-import doctorRoutes from "./routes/doctorRoutes.js";
+// import doctorRoutes from "./routes/doctorRoutes.js";
 
 import doctors from "./routes/doctors.js";
 import clinics from "./routes/clinics.js";
@@ -18,6 +18,15 @@ import payments from "./routes/payments.js";
 import servicesRoutes from "./routes/services.js";
 import Appointment from "./models/Appointment.js";
 import videoRoutes from "./routes/video.js";
+import adminStats from "./routes/adminStats.js";
+import adminAppointments from "./routes/adminAppointments.js";
+import adminActions from "./routes/adminActions.js";
+import adminDoctors from "./routes/adminDoctors.js";
+import adminPatients from "./routes/adminPatients.js";
+import adminAvailability from "./routes/adminAvailability.js";
+import adminClinics from "./routes/adminClinics.js";
+import adminServices from "./routes/adminServices.js";
+
 dotenv.config();
 const app = express();
 const httpServer = http.createServer(app);
@@ -66,7 +75,7 @@ nsp.on("connection", (socket) => {
 app.use(
   cors({
     origin: "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
@@ -81,13 +90,22 @@ app.use("/api/auth", authRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/clinics", clinicRoutes);
-app.use("/api/doctors", doctorRoutes);
+// app.use("/api/doctors", doctorRoutes);
 app.use("/api/doctors", doctors);
 app.use("/api/clinics", clinics);
 app.use("/api/services", servicesRoutes);
 app.use("/api/availability", availability);
 app.use("/api/payments", payments);
 app.use("/api/video", videoRoutes);
+
+app.use("/api/admin", adminStats);
+app.use("/api/admin", adminAppointments);
+app.use("/api/admin", adminActions);
+app.use("/api/admin", adminDoctors);
+app.use("/api/admin", adminPatients);
+app.use("/api/admin", adminAvailability);
+app.use("/api/admin", adminClinics);
+app.use("/api/admin", adminServices);
 
 // 404
 app.use((req, res) => res.status(404).json({ msg: "Route not found" }));

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../api/axios"; // ✅ use your configured instance
 import { Box, TextField, Button, Typography, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -13,16 +13,18 @@ export default function AdminLogin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/admin-login",
-        form
-      );
-      localStorage.setItem("adminToken", res.data.token);
+      const { data } = await api.post("/auth/admin-login", form);
+      // store token under the ONE canonical key
+      localStorage.setItem("adminToken", data.token);
+
+      // set header immediately so subsequent calls in this session work
+      api.defaults.headers.common.Authorization = `Bearer ${data.token}`;
+
       alert("Admin login successful!");
       navigate("/admin/dashboard");
     } catch (err) {
-      alert("Invalid credentials or not admin");
-      console.error(err.response?.data || err.message);
+      alert(err?.response?.data?.error || "Invalid credentials or not admin");
+      console.error(err?.response?.data || err?.message);
     }
   };
 
