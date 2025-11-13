@@ -119,6 +119,16 @@ export default function Appointments() {
       : "10:00 - 11:00 AM, Oct 15, 2025";
 
   const clinicName = s1?.clinicMeta?.name || "Selected Clinic";
+  const apptTypeLabel =
+    s1?.appointmentType === "clinic"
+      ? `Clinic (${clinicName})`
+      : s1?.appointmentType === "video"
+      ? "Video"
+      : s1?.appointmentType === "audio"
+      ? "Audio"
+      : s1?.appointmentType === "chat"
+      ? "Live Chat"
+      : "Clinic";
   const doctorForStep = doctorIdFromUrl ? doctor : doctor || null;
 
   /* ---------- Loading / Error UI ---------- */
@@ -213,7 +223,7 @@ export default function Appointments() {
                         (a) => a.code === selectedAddOns[0]
                       )?.name || ""
                     : "",
-                appointmentType: `Clinic (${clinicName})`,
+                appointmentType: apptTypeLabel,
               }}
               context={{
                 appointmentType: s1?.appointmentType,
@@ -243,7 +253,7 @@ export default function Appointments() {
                         .join(", ")
                     : "—",
                 dateLabel,
-                appointmentType: `Clinic (${clinicName})`,
+                appointmentType: apptTypeLabel,
               }}
               onBack={goBack}
               onNext={goNext}

@@ -43,7 +43,6 @@ nsp.use(async (socket, next) => {
 
   const appt = await Appointment.findOne({ "video.roomId": roomId });
   if (!appt) return next(new Error("Room not found"));
-
   if (appt.video?.pin && pin !== appt.video.pin) {
     return next(new Error("Invalid PIN"));
   }
@@ -52,25 +51,49 @@ nsp.use(async (socket, next) => {
   next();
 });
 
+// --- SINGLE source of truth for /video namespace ---
 nsp.on("connection", (socket) => {
   const { roomId } = socket.data;
   socket.join(roomId);
-  nsp.to(roomId).emit("peer:joined", { id: socket.id });
 
-  socket.on("signal:offer", (payload) =>
-    socket.to(roomId).emit("signal:offer", { from: socket.id, ...payload })
-  );
-  socket.on("signal:answer", (payload) =>
-    socket.to(roomId).emit("signal:answer", { from: socket.id, ...payload })
-  );
-  socket.on("signal:ice", (payload) =>
-    socket.to(roomId).emit("signal:ice", { from: socket.id, ...payload })
-  );
+  // Notify only other peers so only an existing participant creates an offer
+  socket.to(roomId).emit("peer:joined", { id: socket.id });
+
+  // WebRTC signaling
+  socket.on("signal:offer", (payload) => {
+    socket.to(roomId).emit("signal:offer", { from: socket.id, ...payload });
+  });
+  socket.on("signal:answer", (payload) => {
+    socket.to(roomId).emit("signal:answer", { from: socket.id, ...payload });
+  });
+  socket.on("signal:ice", (payload) => {
+    socket.to(roomId).emit("signal:ice", { from: socket.id, ...payload });
+  });
+
+  // Chat (works for chat-only and alongside A/V)
+  socket.on("chat:send", ({ text, displayName }) => {
+    if (!text || !String(text).trim()) return;
+    nsp.to(roomId).emit("chat:message", {
+      from: socket.id,
+      displayName: displayName || "Guest",
+      text: String(text).slice(0, 2000),
+      ts: Date.now(),
+    });
+  });
+
+  socket.on("chat:typing", ({ typing, displayName }) => {
+    socket.to(roomId).emit("chat:typing", {
+      from: socket.id,
+      displayName: displayName || "Guest",
+      typing: !!typing,
+    });
+  });
 
   socket.on("disconnect", () => {
-    nsp.to(roomId).emit("peer:left", { id: socket.id });
+    socket.to(roomId).emit("peer:left", { id: socket.id });
   });
 });
+
 // CORS: allow Authorization header
 app.use(
   cors({
@@ -158,6 +181,27 @@ io.on("connection", (socket) => {
         if (!set.size) roomMap.delete(roomId);
       }
     }
+  });
+
+  // --- Simple chat bridge in the /video namespace ---
+  socket.on("chat:send", ({ text, displayName }) => {
+    const { roomId } = socket.data;
+    if (!text || !text.trim()) return;
+    nsp.to(roomId).emit("chat:message", {
+      from: socket.id,
+      displayName: displayName || "Guest",
+      text: String(text).slice(0, 2000),
+      ts: Date.now(),
+    });
+  });
+
+  socket.on("chat:typing", ({ typing, displayName }) => {
+    const { roomId } = socket.data;
+    socket.to(roomId).emit("chat:typing", {
+      from: socket.id,
+      displayName: displayName || "Guest",
+      typing: !!typing,
+    });
   });
 });
 

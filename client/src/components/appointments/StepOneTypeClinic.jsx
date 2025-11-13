@@ -20,6 +20,8 @@ import ChatRoundedIcon from "@mui/icons-material/ChatRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import RadioButtonUncheckedRoundedIcon from "@mui/icons-material/RadioButtonUncheckedRounded";
+import Navbar from "../Navbar";
+import Footer from "../Footer";
 
 const TYPE_TILES = [
   { key: "clinic", label: "Clinic Visit", icon: LocalHospitalRoundedIcon },
@@ -28,8 +30,6 @@ const TYPE_TILES = [
   { key: "chat", label: "Live Chat", icon: ChatRoundedIcon },
   { key: "home_visit", label: "Home Visit", icon: HomeRoundedIcon },
 ];
-
-/* ---------- SMALL UI ATOMS ---------- */
 
 function TypeTile({ active, Icon, label, onClick }) {
   return (
@@ -78,7 +78,7 @@ function TypeTile({ active, Icon, label, onClick }) {
 
 function ClinicRow({ clinic, selected, onSelect }) {
   const fallbackClinicLogo =
-    "https://cdn-icons-png.flaticon.com/512/2967/2967596.png"; // small clinic building icon
+    "https://cdn-icons-png.flaticon.com/512/2967/2967596.png";
   return (
     <Box
       onClick={onSelect}
@@ -213,249 +213,289 @@ export default function StepOneTypeClinic({
   };
 
   return (
-    <Card
-      sx={{
-        borderRadius: 4,
-        overflow: "hidden",
-        border: "1px solid #EAECF0",
-        bgcolor: "#fff",
-        boxShadow: "0 12px 40px rgba(16,24,40,.08)",
-      }}
-    >
-      <CardContent sx={{ p: { xs: 2.5, md: 4 } }}>
-        {/* Doctor Header */}
-        {doctor && (
-          <Box
+    <>
+      <Box
+        sx={{
+          bgcolor: "#f8fafa",
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          py: 6,
+        }}
+      >
+        <Box sx={{ width: "100%", maxWidth: 720, mx: "auto" }}>
+          <Card
             sx={{
-              border: "1px solid #E5E7EB",
-              borderRadius: 3,
-              p: 2,
-              mb: 3,
-              bgcolor: "#fafafa",
+              borderRadius: 4,
+              overflow: "hidden",
+              border: "1px solid #EAECF0",
+              bgcolor: "#fff",
+              boxShadow: "0 12px 40px rgba(16,24,40,.08)",
             }}
           >
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Avatar
-                src={doctor.photoUrl || fallbackDoctorAvatar}
-                alt={doctor.name}
-                onError={(e) => (e.currentTarget.src = fallbackDoctorAvatar)}
-                sx={{
-                  width: 60,
-                  height: 60,
-                  border: "2px solid #fff",
-                  boxShadow: "0 4px 12px rgba(0,0,0,.1)",
-                }}
-              />
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 800 }} noWrap>
-                  {doctor.name}
-                </Typography>
-                <Typography sx={{ color: "#0aa07a", fontSize: 13 }} noWrap>
-                  {doctor.specialty || "Doctor"}
-                </Typography>
-                <Typography
-                  sx={{ color: "text.secondary", fontSize: 12 }}
-                  noWrap
+            <CardContent sx={{ p: { xs: 2.5, md: 4 } }}>
+              {/* Doctor header */}
+              {doctor && (
+                <Box
+                  sx={{
+                    border: "1px solid #E5E7EB",
+                    borderRadius: 3,
+                    p: 2,
+                    mb: 3,
+                    bgcolor: "#fafafa",
+                  }}
                 >
-                  {doctor.addressLine || ""}
-                </Typography>
-              </Box>
-              {doctor.rating && (
-                <Chip
-                  size="small"
-                  label={Number(doctor.rating).toFixed(1)}
-                  color="warning"
-                  sx={{ height: 22 }}
-                />
-              )}
-            </Stack>
-          </Box>
-        )}
-
-        {/* Appointment Type */}
-        <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
-          Select Appointment Type
-        </Typography>
-        <Stack
-          direction="row"
-          flexWrap="wrap"
-          useFlexGap
-          gap={1.25}
-          sx={{ mb: 2.5 }}
-        >
-          {TYPE_TILES.map((t) => (
-            <TypeTile
-              key={t.key}
-              label={t.label}
-              Icon={t.icon}
-              active={appointmentType === t.key}
-              onClick={() => handleTypeChange(t.key)}
-            />
-          ))}
-        </Stack>
-
-        {/* Clinics */}
-        {appointmentType === "clinic" && (
-          <>
-            <Typography sx={{ fontWeight: 700, mb: 1.25 }}>
-              Select Clinic
-            </Typography>
-
-            {loading ? (
-              <Box sx={{ py: 4, display: "flex", justifyContent: "center" }}>
-                <CircularProgress size={28} />
-              </Box>
-            ) : (
-              <Stack spacing={1.25} sx={{ mb: 2 }}>
-                {(localClinics || []).map((c) => (
-                  <ClinicRow
-                    key={c._id}
-                    clinic={c}
-                    selected={clinicId === c._id}
-                    onSelect={() => setClinicId(c._id)}
-                  />
-                ))}
-                {!localClinics?.length && (
-                  <Typography sx={{ color: "text.secondary", fontSize: 14 }}>
-                    No clinics available. Try a virtual option.
-                  </Typography>
-                )}
-              </Stack>
-            )}
-          </>
-        )}
-
-        {/* Doctors */}
-        {appointmentType === "clinic" && clinicId && (
-          <>
-            <Typography sx={{ fontWeight: 700, mb: 1.25 }}>
-              Select Doctor
-            </Typography>
-
-            {loadingDoctors ? (
-              <Box sx={{ py: 3, display: "flex", justifyContent: "center" }}>
-                <CircularProgress size={24} />
-              </Box>
-            ) : doctors.length ? (
-              <Stack spacing={1.25}>
-                {doctors.map((d) => (
-                  <Box
-                    key={d._id}
-                    onClick={() => setDoctorId(d._id)}
-                    sx={{
-                      p: 1.4,
-                      borderRadius: 3,
-                      border: "1px solid",
-                      borderColor: doctorId === d._id ? "#0aa07a" : "#E5E7EB",
-                      bgcolor:
-                        doctorId === d._id ? "rgba(10,160,122,0.05)" : "#fff",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.25,
-                      cursor: "pointer",
-                      transition: "all .2s",
-                      "&:hover": { boxShadow: "0 8px 24px rgba(16,24,40,.06)" },
-                    }}
-                  >
+                  <Stack direction="row" spacing={2} alignItems="center">
                     <Avatar
-                      src={d.photoUrl || fallbackDoctorAvatar}
-                      alt={d.name}
+                      src={doctor.photoUrl || fallbackDoctorAvatar}
+                      alt={doctor.name}
                       onError={(e) =>
                         (e.currentTarget.src = fallbackDoctorAvatar)
                       }
+                      sx={{
+                        width: 60,
+                        height: 60,
+                        border: "2px solid #fff",
+                        boxShadow: "0 4px 12px rgba(0,0,0,.1)",
+                      }}
                     />
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography sx={{ fontWeight: 700 }} noWrap>
-                        {d.name}
+                      <Typography sx={{ fontWeight: 800 }} noWrap>
+                        {doctor.name}
                       </Typography>
                       <Typography
-                        sx={{ color: "text.secondary", fontSize: 13 }}
+                        sx={{ color: "#0aa07a", fontSize: 13 }}
                         noWrap
                       >
-                        {d.specialty || "Doctor"}
+                        {doctor.specialty || "Doctor"}
+                      </Typography>
+                      <Typography
+                        sx={{ color: "text.secondary", fontSize: 12 }}
+                        noWrap
+                      >
+                        {doctor.addressLine || ""}
                       </Typography>
                     </Box>
-                    {doctorId === d._id ? (
-                      <CheckCircleRoundedIcon sx={{ color: "#0aa07a" }} />
-                    ) : (
-                      <RadioButtonUncheckedRoundedIcon
-                        sx={{ color: "#D1D5DB" }}
+                    {doctor.rating && (
+                      <Chip
+                        size="small"
+                        label={Number(doctor.rating).toFixed(1)}
+                        color="warning"
+                        sx={{ height: 22 }}
                       />
                     )}
-                  </Box>
+                  </Stack>
+                </Box>
+              )}
+
+              <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+                Select Appointment Type
+              </Typography>
+              <Stack
+                direction="row"
+                flexWrap="wrap"
+                useFlexGap
+                gap={1.25}
+                sx={{ mb: 2.5 }}
+              >
+                {TYPE_TILES.map((t) => (
+                  <TypeTile
+                    key={t.key}
+                    label={t.label}
+                    Icon={t.icon}
+                    active={appointmentType === t.key}
+                    onClick={() => handleTypeChange(t.key)}
+                  />
                 ))}
               </Stack>
-            ) : (
-              <Typography sx={{ color: "text.secondary", fontSize: 14 }}>
-                No doctors linked to this clinic.
-              </Typography>
-            )}
-          </>
-        )}
-      </CardContent>
 
-      {/* Footer Buttons */}
-      <Box
-        sx={{
-          px: { xs: 2.5, md: 4 },
-          py: 1.75,
-          borderTop: "1px dashed #E5E7EB",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          bgcolor: "#f9fafb",
-        }}
-      >
-        <Button
-          variant="outlined"
-          onClick={onBack}
-          sx={{
-            borderRadius: 999,
-            textTransform: "none",
-            px: 3,
-          }}
-        >
-          ‹ Back
-        </Button>
-        <Tooltip
-          title={!canNext ? "Please select clinic and doctor" : ""}
-          disableHoverListener={canNext}
-        >
-          <span>
-            <Button
-              variant="contained"
-              disabled={!canNext}
-              onClick={() =>
-                onNext({
-                  appointmentType,
-                  clinicId: selectedClinic?._id || null,
-                  clinicMeta: selectedClinic
-                    ? {
-                        name: selectedClinic.name,
-                        address: selectedClinic.address,
-                      }
-                    : null,
-                  doctorId: doctorId || null,
-                  doctorMeta: doctorId
-                    ? doctors.find((d) => d._id === doctorId) || null
-                    : null,
-                })
-              }
+              {appointmentType === "clinic" && (
+                <>
+                  <Typography sx={{ fontWeight: 700, mb: 1.25 }}>
+                    Select Clinic
+                  </Typography>
+
+                  {loading ? (
+                    <Stack alignItems="center" py={3}>
+                      <CircularProgress size={28} />
+                    </Stack>
+                  ) : (
+                    <Stack spacing={1.25} sx={{ mb: 2 }}>
+                      {(localClinics || []).map((c) => (
+                        <ClinicRow
+                          key={c._id}
+                          clinic={c}
+                          selected={clinicId === c._id}
+                          onSelect={() => setClinicId(c._id)}
+                        />
+                      ))}
+                    </Stack>
+                  )}
+                </>
+              )}
+
+              {appointmentType === "clinic" && clinicId && (
+                <>
+                  <Typography sx={{ fontWeight: 700, mb: 1.25 }}>
+                    Select Doctor
+                  </Typography>
+
+                  {loadingDoctors ? (
+                    <Stack alignItems="center" py={3}>
+                      <CircularProgress size={24} />
+                    </Stack>
+                  ) : (
+                    <Stack spacing={1.25}>
+                      {doctors.map((d) => (
+                        <Box
+                          key={d._id}
+                          onClick={() => setDoctorId(d._id)}
+                          sx={{
+                            p: 1.4,
+                            borderRadius: 3,
+                            border: "1px solid",
+                            borderColor:
+                              doctorId === d._id ? "#0aa07a" : "#E5E7EB",
+                            bgcolor:
+                              doctorId === d._id
+                                ? "rgba(10,160,122,0.05)"
+                                : "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.25,
+                            cursor: "pointer",
+                            transition: "all .2s",
+                            "&:hover": {
+                              boxShadow: "0 8px 24px rgba(16,24,40,.06)",
+                            },
+                          }}
+                        >
+                          <Avatar
+                            src={d.photoUrl || fallbackDoctorAvatar}
+                            alt={d.name}
+                            onError={(e) =>
+                              (e.currentTarget.src = fallbackDoctorAvatar)
+                            }
+                          />
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography sx={{ fontWeight: 700 }} noWrap>
+                              {d.name}
+                            </Typography>
+                            <Typography
+                              sx={{ color: "text.secondary", fontSize: 13 }}
+                              noWrap
+                            >
+                              {d.specialty || "Doctor"}
+                            </Typography>
+                          </Box>
+                          {doctorId === d._id ? (
+                            <CheckCircleRoundedIcon sx={{ color: "#0aa07a" }} />
+                          ) : (
+                            <RadioButtonUncheckedRoundedIcon
+                              sx={{ color: "#D1D5DB" }}
+                            />
+                          )}
+                        </Box>
+                      ))}
+                    </Stack>
+                  )}
+                </>
+              )}
+
+              {["video", "audio", "chat"].includes(appointmentType) && (
+                <Box
+                  sx={{
+                    border: "1px solid #E5E7EB",
+                    borderRadius: 3,
+                    p: 2,
+                    mt: 2,
+                    bgcolor: "#f9fafb",
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 700, mb: 0.5 }}>
+                    {appointmentType === "video"
+                      ? "Video Consultation"
+                      : appointmentType === "audio"
+                      ? "Audio Consultation"
+                      : "Live Chat Consultation"}
+                  </Typography>
+                  <Typography sx={{ color: "text.secondary", fontSize: 14 }}>
+                    {appointmentType === "video" &&
+                      "You’ll receive a secure video link before the appointment."}
+                    {appointmentType === "audio" &&
+                      "You’ll join a secure, in-browser audio call at the selected time."}
+                    {appointmentType === "chat" &&
+                      "You’ll receive a secure chat link and can message live."}
+                  </Typography>
+                </Box>
+              )}
+            </CardContent>
+
+            <Box
               sx={{
-                borderRadius: 999,
-                textTransform: "none",
-                px: 3,
-                fontWeight: 700,
-                bgcolor: "#0aa07a",
-                "&:hover": { bgcolor: "#088a69" },
+                px: { xs: 2.5, md: 4 },
+                py: 1.75,
+                borderTop: "1px dashed #E5E7EB",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                bgcolor: "#f9fafb",
               }}
             >
-              Select Date & Time →
-            </Button>
-          </span>
-        </Tooltip>
+              <Button
+                variant="outlined"
+                onClick={onBack}
+                sx={{
+                  borderRadius: 999,
+                  textTransform: "none",
+                  px: 3,
+                }}
+              >
+                ‹ Back
+              </Button>
+              <Tooltip
+                title={!canNext ? "Please select clinic and doctor" : ""}
+                disableHoverListener={canNext}
+              >
+                <span>
+                  <Button
+                    variant="contained"
+                    disabled={!canNext}
+                    onClick={() =>
+                      onNext({
+                        appointmentType,
+                        clinicId: selectedClinic?._id || null,
+                        clinicMeta: selectedClinic
+                          ? {
+                              name: selectedClinic.name,
+                              address: selectedClinic.address,
+                            }
+                          : null,
+                        doctorId: doctorId || null,
+                        doctorMeta: doctorId
+                          ? doctors.find((d) => d._id === doctorId) || null
+                          : null,
+                      })
+                    }
+                    sx={{
+                      borderRadius: 999,
+                      textTransform: "none",
+                      px: 3,
+                      fontWeight: 700,
+                      bgcolor: "#0aa07a",
+                      "&:hover": { bgcolor: "#088a69" },
+                    }}
+                  >
+                    Select Date & Time →
+                  </Button>
+                </span>
+              </Tooltip>
+            </Box>
+          </Card>
+        </Box>
       </Box>
-    </Card>
+    </>
   );
 }
 

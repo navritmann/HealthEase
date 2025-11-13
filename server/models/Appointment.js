@@ -10,23 +10,32 @@ const PaymentSchema = new mongoose.Schema(
     currency: { type: String, default: "USD" },
     amount: Number,
     gateway: { type: String, default: "stripe" },
-    intentId: String, // Stripe PaymentIntent id
-    chargeId: String, // Stripe charge id
+    intentId: String,
+    chargeId: String,
   },
   { _id: false }
 );
 
+// Keep the field name `video` to match your existing frontend,
+// but let it carry all realtime session types: video | audio | chat.
 const VideoSchema = new mongoose.Schema(
   {
+    type: {
+      type: String,
+      enum: ["video", "audio", "chat"],
+      default: "video",
+    },
     roomId: String,
     joinUrl: String,
-    pin: String, // simple shared secret
+    // TIP: set select:false to avoid leaking the PIN in generic queries.
+    // If you need it in a specific endpoint, use .select('+video.pin').
+    pin: { type: String /*, select: false */ },
     status: {
       type: String,
       enum: ["pending", "open", "ended"],
       default: "pending",
     },
-    startsAt: Date, // optional: window checks
+    startsAt: Date,
     endsAt: Date,
   },
   { _id: false }
@@ -38,7 +47,6 @@ const AppointmentSchema = new mongoose.Schema(
     doctorId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Doctor",
-      // Only enforce a doctor for in-person or home-visit appointments
       required: function () {
         return (
           this.appointmentType === "clinic" ||
@@ -49,7 +57,6 @@ const AppointmentSchema = new mongoose.Schema(
     clinicId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Clinic",
-      // Require clinic only when it's an in-person or home-visit appointment
       required: function () {
         return (
           this.appointmentType === "clinic" ||
@@ -57,7 +64,7 @@ const AppointmentSchema = new mongoose.Schema(
         );
       },
     },
-    video: VideoSchema,
+    video: VideoSchema, // holds video/audio/chat session info (joinUrl + pin)
     patientId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Patient",
@@ -79,22 +86,13 @@ const AppointmentSchema = new mongoose.Schema(
       default: "held",
     },
     payment: PaymentSchema,
-    holdExpiresAt: Date, // for temporary holds before payment
+    // NOTE: TTL will run on this field; unset it at confirm to avoid accidental expiry.
+    holdExpiresAt: Date,
   },
   { timestamps: true }
 );
 
-// Prevent double booking: unique on confirmed/held active slots
-AppointmentSchema.index(
-  { doctorId: 1, clinicId: 1, start: 1 },
-  {
-    unique: true,
-    partialFilterExpression: { status: { $in: ["held", "confirmed"] } },
-  },
-  { holdExpiresAt: 1 },
-  { expireAfterSeconds: 0, partialFilterExpression: { status: "held" } }
-);
-
+// ---- Validation
 AppointmentSchema.path("end").validate(function (v) {
   return v > this.start;
 }, "end must be after start");
@@ -104,6 +102,7 @@ AppointmentSchema.path("clinicId").validate(function (v) {
   return needsClinic ? !!v : true;
 }, "clinicId is required for this appointment type");
 
+// Generate bookingNo if missing
 AppointmentSchema.pre("validate", function (next) {
   if (!this.bookingNo) {
     this.bookingNo =
@@ -111,5 +110,22 @@ AppointmentSchema.pre("validate", function (next) {
   }
   next();
 });
+
+// ---- Indexes
+
+// 1) Prevent double-booking (doctor+clinic+start) for *active* (held/confirmed) appts.
+// Partial filter keeps historical/cancelled out of the uniqueness constraint.
+AppointmentSchema.index(
+  { doctorId: 1, clinicId: 1, start: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: { $in: ["held", "confirmed"] } },
+  }
+);
+
+// 2) TTL index to auto-expire HELD drafts once holdExpiresAt passes.
+// TTL indexes cannot be partial. To avoid expiring confirmed appts,
+// make sure you UNSET holdExpiresAt upon confirm.
+AppointmentSchema.index({ holdExpiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export default mongoose.model("Appointment", AppointmentSchema);

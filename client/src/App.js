@@ -20,6 +20,8 @@ import ServicesFront from "./pages/Services";
 import DoctorsFront from "./pages/Doctors";
 import DoctorDetails from "./pages/DoctorDetails";
 import FAQ from "./pages/FAQ";
+import AudioCallRoom from "./pages/AudioCallRoom";
+import ChatRoom from "./pages/ChatRoom";
 
 export default function App() {
   return (
@@ -32,7 +34,8 @@ export default function App() {
         <Route path="/doctors" element={<DoctorsFront />} />
         <Route path="/doctor/:id" element={<DoctorDetails />} />
         <Route path="/faq" element={<FAQ />} />
-        <Route path="/faq" element={<FAQ />} />
+        <Route path="/audio/:roomId" element={<AudioCallRoom />} />
+        <Route path="/chat/:roomId" element={<ChatRoom />} />
 
         {/* Public auth */}
         <Route path="/login" element={<Login />} />
@@ -62,6 +65,8 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/audio/:roomId" element={<AudioCallRoom />} />
+        <Route path="/chat/:roomId" element={<ChatRoom />} />
         {/* Admin (protected) */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route

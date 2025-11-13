@@ -9,14 +9,11 @@ const r = Router();
 function makeBookingNo() {
   return "DCR" + Math.random().toString(36).slice(2, 8).toUpperCase();
 }
-
 function makeRoomId() {
-  return "vid_" + Math.random().toString(36).slice(2, 8).toUpperCase();
+  return "room_" + Math.random().toString(36).slice(2, 8).toUpperCase();
 }
 
-// 1) HOLD a slot (after date/time is picked; before payment)
-// POST /api/appointments/hold
-// body: { doctorId, clinicId, appointmentType, start, end, patientDraft? }
+// ---------------- 1) HOLD ----------------
 r.post("/hold", async (req, res) => {
   const { doctorId, clinicId, appointmentType, start, end, patientDraft } =
     req.body;
@@ -27,27 +24,26 @@ r.post("/hold", async (req, res) => {
   if (
     (appointmentType === "clinic" || appointmentType === "home_visit") &&
     !doctorId
-  ) {
+  )
     missing.push("doctorId");
-  }
-  if (missing.length) {
+
+  if (missing.length)
     return res
       .status(400)
       .json({ error: `Missing fields: ${missing.join(", ")}` });
-  }
 
   let session;
   try {
     session = await mongoose.startSession();
     await session.withTransaction(async () => {
-      // 1) validate slot
       const where = { start, end, blocked: { $ne: true } };
       if (doctorId) where.doctorId = doctorId;
       if (clinicId) where.clinicId = clinicId;
+
       const slot = await Availability.findOne(where).session(session);
       if (!slot) throw new Error("Slot not available");
 
-      // 2) optional patient upsert (INSIDE tx; uses session)
+      // Optional patient creation/upsert
       let patient = null;
       if (patientDraft?.email) {
         const { firstName, lastName, phone, email, ...rest } = patientDraft;
@@ -61,7 +57,6 @@ r.post("/hold", async (req, res) => {
         );
       }
 
-      // 3) create hold
       const hold = new Appointment({
         bookingNo: makeBookingNo(),
         doctorId,
@@ -83,18 +78,15 @@ r.post("/hold", async (req, res) => {
       });
     });
   } catch (e) {
-    return res.status(409).json({ error: e.message || "Hold failed" });
+    res.status(409).json({ error: e.message || "Hold failed" });
   } finally {
     if (session) await session.endSession();
   }
 });
 
-// 2) QUOTE (server-calculated pricing)
-// POST /api/appointments/quote
-// body: { serviceCode, addOns:[], appointmentType }
+// ---------------- 2) QUOTE ----------------
 r.post("/quote", async (req, res) => {
-  const { serviceCode, addOns = [], appointmentType } = req.body;
-  // demo pricing
+  const { serviceCode, addOns = [] } = req.body;
   const base = serviceCode === "CARDIO_30" ? 200 : 150;
   const addOn = addOns.includes("ECHO") ? 20 : 0;
   const bookingFee = 20;
@@ -113,9 +105,8 @@ r.post("/quote", async (req, res) => {
   });
 });
 
-// 3) CONFIRM (after successful payment)
-// POST /api/appointments/confirm
-// body: { appointmentId, payment: { status, currency, amount, gateway, intentId, chargeId }, patient }
+// ---------------- 3) CONFIRM ----------------
+// routes/appointments.js  (CONFIRM handler only – keep the rest)
 r.post("/confirm", async (req, res) => {
   const { appointmentId, payment, patient } = req.body;
   if (!appointmentId || !payment?.status)
@@ -127,21 +118,26 @@ r.post("/confirm", async (req, res) => {
     await session.withTransaction(async () => {
       const appt = await Appointment.findById(appointmentId).session(session);
       if (!appt) throw new Error("Appointment not found");
-      if (appt.appointmentType === "video") {
-        const roomId = makeRoomId();
-        const base = process.env.APP_BASE_URL || "http://localhost:3000";
-        const pin = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
 
+      const base = process.env.APP_BASE_URL || "http://localhost:3000";
+      const roomId =
+        "room_" + Math.random().toString(36).slice(2, 8).toUpperCase();
+      const pin = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // Create join session for virtual types
+      if (["video", "audio", "chat"].includes(appt.appointmentType)) {
         appt.video = {
+          type: appt.appointmentType, // 👈 important
           roomId,
-          joinUrl: `${base}/video/${roomId}`,
+          joinUrl: `${base}/${appt.appointmentType}/${roomId}`,
           pin,
           status: "pending",
           startsAt: appt.start,
           endsAt: appt.end,
         };
       }
-      // idempotent
+
+      // Idempotency
       if (appt.status === "confirmed") {
         return res.json({
           bookingNo: appt.bookingNo,
@@ -151,7 +147,7 @@ r.post("/confirm", async (req, res) => {
         });
       }
 
-      // optional patient upsert (INSIDE tx)
+      // optional patient upsert
       if (patient?.email) {
         const { firstName, lastName, phone, email, ...rest } = patient;
         const p = await Patient.findOneAndUpdate(
@@ -167,6 +163,7 @@ r.post("/confirm", async (req, res) => {
 
       appt.payment = payment;
       appt.status = "confirmed";
+      appt.holdExpiresAt = undefined; // 👈 prevent TTL on confirmed
       await appt.save({ session });
 
       await Availability.updateOne(
@@ -194,7 +191,7 @@ r.post("/confirm", async (req, res) => {
   }
 });
 
-// 4) GET /api/appointments/:id (for confirmation page)
+// ---------------- 4) GET /api/appointments/:id ----------------
 r.get("/:id", async (req, res) => {
   const a = await Appointment.findById(req.params.id).populate(
     "doctorId clinicId patientId"

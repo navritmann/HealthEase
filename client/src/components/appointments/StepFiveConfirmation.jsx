@@ -25,6 +25,26 @@ export default function StepFiveConfirmation({
   const s = summary ?? {};
   const v = video ?? {};
 
+  // Prefer new video payload, fallback to legacy summary.videoJoinUrl
+  const joinUrl = v?.joinUrl || s?.videoJoinUrl || "";
+  const pin = v?.pin || "";
+
+  const callType = getCallType(joinUrl); // "VIDEO" | "AUDIO" | "CHAT" | null
+
+  const handleJoin = () => {
+    if (!joinUrl) return;
+    window.open(joinUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const copy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      // minimal UX: could add a toast if you have one
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <Card
       sx={{ borderRadius: 3, overflow: "hidden", border: "1px solid #EAECF0" }}
@@ -59,6 +79,20 @@ export default function StepFiveConfirmation({
                     sx={{ height: 22 }}
                   />
                 ) : null}
+                {callType && (
+                  <Chip
+                    size="small"
+                    label={`${callType} CALL`}
+                    color={
+                      callType === "VIDEO"
+                        ? "primary"
+                        : callType === "AUDIO"
+                        ? "success"
+                        : "default"
+                    }
+                    sx={{ height: 22 }}
+                  />
+                )}
               </Stack>
               <Typography sx={{ color: "primary.main", fontSize: 13 }} noWrap>
                 {d.specialty || "Doctor"}
@@ -93,30 +127,64 @@ export default function StepFiveConfirmation({
             <Row k="Date & Time" v={s.dateLabel || "—"} />
             <Row k="Appointment type" v={s.appointmentType || "—"} />
             {s.clinicName ? <Row k="Clinic" v={s.clinicName} /> : null}
-            {v.joinUrl && (
+
+            {(joinUrl || pin) && (
               <>
                 <Divider sx={{ my: 2 }} />
                 <Typography sx={{ fontWeight: 700, mb: 1 }}>
-                  Video Call Info
+                  Call Details
                 </Typography>
-                <Row
-                  k="Join Link"
-                  v={
-                    <a href={v.joinUrl} target="_blank" rel="noreferrer">
-                      {v.joinUrl}
-                    </a>
-                  }
-                />
-                {v.pin && (
+
+                {joinUrl && (
+                  <Row
+                    k="Join Link"
+                    v={
+                      <a href={joinUrl} target="_blank" rel="noreferrer">
+                        {joinUrl}
+                      </a>
+                    }
+                  />
+                )}
+
+                {pin && (
                   <Row
                     k="PIN"
                     v={
                       <span style={{ fontWeight: 700, color: "#1976d2" }}>
-                        {v.pin}
+                        {pin}
                       </span>
                     }
                   />
                 )}
+
+                {/* Action buttons for the call */}
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ mt: 1 }}
+                  flexWrap="wrap"
+                  useFlexGap
+                >
+                  {joinUrl && (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleJoin}
+                    >
+                      Join Now
+                    </Button>
+                  )}
+                  {joinUrl && (
+                    <Button variant="outlined" onClick={() => copy(joinUrl)}>
+                      Copy Link
+                    </Button>
+                  )}
+                  {pin && (
+                    <Button variant="outlined" onClick={() => copy(pin)}>
+                      Copy PIN
+                    </Button>
+                  )}
+                </Stack>
               </>
             )}
           </Stack>
@@ -133,15 +201,6 @@ export default function StepFiveConfirmation({
             <Button variant="contained" onClick={onStartNew}>
               Book Another Appointment
             </Button>
-            {s.videoJoinUrl ? (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => window.open(s.videoJoinUrl, "_blank")}
-              >
-                Join Video Call
-              </Button>
-            ) : null}
           </Stack>
         </Box>
       </CardContent>
@@ -165,6 +224,23 @@ export default function StepFiveConfirmation({
       </Box>
     </Card>
   );
+}
+
+function getCallType(url) {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    // expects /video/:roomId or /audio/:roomId or /chat/:roomId
+    if (u.pathname.startsWith("/video/")) return "VIDEO";
+    if (u.pathname.startsWith("/audio/")) return "AUDIO";
+    if (u.pathname.startsWith("/chat/")) return "CHAT";
+  } catch {
+    // handle relative links like /video/abc
+    if (url.startsWith("/video/")) return "VIDEO";
+    if (url.startsWith("/audio/")) return "AUDIO";
+    if (url.startsWith("/chat/")) return "CHAT";
+  }
+  return null;
 }
 
 function Row({ k, v }) {
