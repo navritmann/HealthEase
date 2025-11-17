@@ -32,7 +32,8 @@ const app = express();
 const httpServer = http.createServer(app);
 
 // 🔐 FRONTEND ORIGIN (works for local + prod)
-const FRONTEND_ORIGIN = process.env.APP_BASE_URL || "http://localhost:3000";
+const rawFrontend = process.env.APP_BASE_URL || "http://localhost:3000";
+const FRONTEND_ORIGIN = rawFrontend.replace(/\/$/, "");
 
 // CORS: allow Authorization header
 app.use(
