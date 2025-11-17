@@ -31,119 +31,55 @@ const calcTotal = ({
 export const createAppointment = async (req, res) => {
   try {
     const {
-      patientId, // NOTE: ideally read from req.user._id in protected routes
+      patientId,
       doctorId,
       slot,
       durationMins = 30,
       appointmentType,
       clinicId,
-      clinicName,
-      clinicAddress,
-      primaryService,
-      addOnServices,
-      bookingFee,
-      tax,
-      discount,
-      contact,
-      selectedPatientId,
-      symptoms,
-      reasonForVisit,
-      attachments,
-      payment,
     } = req.body;
 
-    if (!patientId || !doctorId || !slot?.date || !slot?.time) {
-      return res.status(400).json({
-        msg: "patientId, doctorId, slot.date, slot.time are required",
-      });
-    }
-
-    if (payment && !["stripe", "cash_on_delivery"].includes(payment.method)) {
-      return res.status(400).json({ msg: "Invalid payment method" });
-    }
-
-    if (["clinic", "home_visit"].includes(appointmentType) && !clinicId) {
-      return res.status(400).json({
-        msg: "clinicId is required for clinic/home_visit appointments",
-      });
-    }
-
-    // coerce date and basic time validation
-    const dateObj = new Date(slot.date);
-    if (Number.isNaN(dateObj.getTime())) {
+    if (!doctorId || !slot?.date || !slot?.time) {
       return res
         .status(400)
-        .json({ msg: "slot.date must be a valid date (YYYY-MM-DD)" });
+        .json({ msg: "doctorId, slot.date, slot.time are required" });
     }
-    const startMin = hmToMin(slot.time);
-    const endMin = startMin + Number(durationMins || 30);
-    if (!(endMin > startMin)) {
-      return res.status(400).json({ msg: "Invalid time range" });
-    }
-
-    // ensure slot start is in the future (optional)
-    const startDateTime = new Date(dateObj);
-    startDateTime.setHours(Math.floor(startMin / 60), startMin % 60, 0, 0);
-    if (startDateTime.getTime() <= Date.now()) {
-      return res.status(400).json({ msg: "Selected time is in the past" });
-    }
-
-    // conflict check: same doctor or same patient on same date with overlap
-    const sameDay = await Appointment.find({
-      "slot.date": dateObj,
-      $or: [{ doctorId }, { patientId }],
-    })
-      .select("slot.time durationMins doctorId patientId")
-      .lean();
-
-    const conflict = sameDay.some((a) => {
-      const aStart = hmToMin(a.slot.time);
-      const aEnd = aStart + (a.durationMins || 30);
-      return isOverlap(aStart, aEnd, startMin, endMin);
-    });
-
-    if (conflict) {
+    if (["clinic", "home_visit"].includes(appointmentType) && !clinicId) {
       return res
-        .status(409)
-        .json({ msg: "Selected slot overlaps an existing appointment" });
+        .status(400)
+        .json({ msg: "clinicId is required for clinic/home_visit" });
     }
 
-    const bookingNumber = `DCRA${nanoid(6).toUpperCase()}`;
-    const total = calcTotal({
-      primaryService,
-      addOnServices,
-      bookingFee,
-      tax,
-      discount,
-    });
+    // derive start/end from slot
+    const d = new Date(slot.date);
+    if (Number.isNaN(d.getTime()))
+      return res.status(400).json({ msg: "slot.date must be YYYY-MM-DD" });
+    const startMin = hmToMin(slot.time);
+    const start = new Date(d);
+    start.setHours(Math.floor(startMin / 60), startMin % 60, 0, 0);
+    const end = new Date(start);
+    end.setMinutes(end.getMinutes() + Number(durationMins || 30));
 
-    const appointment = await Appointment.create({
-      patientId,
+    const appt = await Appointment.create({
+      bookingNo: "DCR" + nanoid(6).toUpperCase(),
       doctorId,
-      slot: { date: dateObj, time: slot.time },
-      durationMins,
+      clinicId: clinicId || null,
+      patientId: patientId || null, // can be null while held
       appointmentType,
-      clinicId,
-      clinicName,
-      clinicAddress,
-      primaryService,
-      addOnServices,
-      bookingFee,
-      tax,
-      discount,
-      total,
-      contact,
-      selectedPatientId,
-      symptoms,
-      reasonForVisit,
-      attachments,
-      payment,
-      bookingNumber,
+      start,
+      end,
+      status: "held",
+      payment: { status: "pending", gateway: "stripe", currency: "USD" },
+      holdExpiresAt: new Date(Date.now() + 15 * 60 * 1000),
     });
 
-    res.status(201).json({ msg: "Appointment created", appointment });
+    return res.status(201).json({
+      msg: "Appointment created (held)",
+      id: appt._id,
+      bookingNo: appt.bookingNo,
+    });
   } catch (err) {
-    res
+    return res
       .status(500)
       .json({ msg: "Error creating appointment", error: err.message });
   }

@@ -1,5 +1,8 @@
+// src/pages/admin/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/admin/AdminLayout";
+import api from "../../api/axios"; // 👈 use same axios instance as other admin pages
 
 export default function AdminDashboard() {
   return (
@@ -18,35 +21,55 @@ export default function AdminDashboard() {
 }
 
 function DashboardPage() {
+  const navigate = useNavigate();
+
   const [stats, setStats] = useState({
     totalAppointments: 0,
     completedPct: 0,
     pendingCount: 0,
     revenueWeek: 0,
+    statusCounts: {},
+    departmentBreakdown: [],
+    deptTotal: 0,
   });
   const [today, setToday] = useState([]);
   const [rev, setRev] = useState({ labels: [], values: [] });
   const [revRange, setRevRange] = useState("week");
 
+  // ---- load stats + today schedule ----
   useEffect(() => {
     (async () => {
-      const s = await fetch("/api/admin/stats")
-        .then((r) => r.json())
-        .catch(() => null);
-      if (s) setStats(s);
-      const t = await fetch("/api/admin/today-schedule")
-        .then((r) => r.json())
-        .catch(() => []);
-      setToday(t || []);
+      try {
+        const sRes = await api.get("/admin/stats");
+        if (sRes.data) {
+          setStats((prev) => ({ ...prev, ...sRes.data }));
+        }
+      } catch (e) {
+        console.error("admin stats error", e);
+      }
+
+      try {
+        const tRes = await api.get("/admin/today-schedule");
+        setToday(Array.isArray(tRes.data) ? tRes.data : []);
+      } catch (e) {
+        console.error("today schedule error", e);
+        setToday([]);
+      }
     })();
   }, []);
 
+  // ---- load revenue for range ----
   useEffect(() => {
     (async () => {
-      const r = await fetch(`/api/admin/revenue?range=${revRange}`)
-        .then((r) => r.json())
-        .catch(() => null);
-      if (r) setRev(r);
+      try {
+        const rRes = await api.get("/admin/revenue", {
+          params: { range: revRange },
+        });
+        if (rRes.data) setRev(rRes.data);
+      } catch (e) {
+        console.error("revenue error", e);
+        setRev({ labels: [], values: [] });
+      }
     })();
   }, [revRange]);
 
@@ -55,12 +78,58 @@ function DashboardPage() {
       label: "Total Appointments",
       value: stats.totalAppointments?.toLocaleString?.() || 0,
     },
-    { label: "Completed", value: `${stats.completedPct}%` },
-    { label: "Pending", value: stats.pendingCount },
+    { label: "Completed", value: `${stats.completedPct || 0}%` },
+    { label: "Pending", value: stats.pendingCount || 0 },
     {
       label: "Revenue (This Week)",
       value: `$${Number(stats.revenueWeek || 0).toLocaleString()}`,
     },
+  ];
+
+  // ---- stage overview (Confirmed / Held / Cancelled / Rescheduled) ----
+  const stageCounts = stats.statusCounts || {};
+  const stageData = [
+    {
+      key: "confirmed",
+      label: "Confirmed",
+      color: "linear-gradient(180deg,#3bd7b2,#1fbf8f)",
+    },
+    {
+      key: "held",
+      label: "Held",
+      color: "linear-gradient(180deg,#2f6fed,#6487ff)",
+    },
+    {
+      key: "cancelled",
+      label: "Cancelled",
+      color: "linear-gradient(180deg,#f97373,#f43f5e)",
+    },
+    {
+      key: "rescheduled",
+      label: "Rescheduled",
+      color: "linear-gradient(180deg,#f4a534,#facc15)",
+    },
+  ].map((s) => ({
+    ...s,
+    value: stageCounts[s.key] || 0,
+  }));
+  const maxStage = Math.max(
+    1,
+    ...stageData.map((s) => (typeof s.value === "number" ? s.value : 0))
+  );
+
+  // ---- departments from backend ----
+  const deptColors = ["#1fbf8f", "#2f6fed", "#f4a534", "#c8d3ea"];
+  const departments = Array.isArray(stats.departmentBreakdown)
+    ? stats.departmentBreakdown
+    : [];
+  const deptTotal =
+    stats.deptTotal || departments.reduce((s, d) => s + (d.count || 0), 0);
+
+  const quickLinks = [
+    { label: "Appointments", path: "/admin/appointments" },
+    { label: "Doctors", path: "/admin/doctors" },
+    { label: "Patients", path: "/admin/patients" },
   ];
 
   return (
@@ -103,6 +172,7 @@ function DashboardPage() {
           marginBottom: 12,
         }}
       >
+        {/* Patient Overview by Stage */}
         <div className="card" style={{ padding: 16 }}>
           <div className="card-h" style={{ fontWeight: 800, marginBottom: 8 }}>
             Patient Overview{" "}
@@ -114,35 +184,61 @@ function DashboardPage() {
             className="mini-bars"
             style={{
               display: "flex",
-              gap: 8,
+              gap: 12,
               alignItems: "flex-end",
-              height: 140,
+              height: 160,
             }}
           >
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="bar"
-                style={{
-                  width: 18,
-                  background: "#eef2f7",
-                  borderRadius: 6,
-                  overflow: "hidden",
-                }}
-              >
-                <span
+            {stageData.map((s) => (
+              <div key={s.key} style={{ textAlign: "center", flex: 1 }}>
+                <div
+                  className="bar"
                   style={{
-                    display: "block",
-                    width: "100%",
-                    background: "linear-gradient(180deg,#3bd7b2,#1fbf8f)",
-                    height: `${30 + (i % 5) * 14}px`,
+                    width: 22,
+                    margin: "0 auto 6px",
+                    background: "#eef2f7",
+                    borderRadius: 8,
+                    overflow: "hidden",
+                    height: 120,
+                    display: "flex",
+                    alignItems: "flex-end",
+                    justifyContent: "center",
                   }}
-                />
+                >
+                  <span
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      background: s.color,
+                      height: `${15 + (s.value / (maxStage || 1)) * 90}px`,
+                      transition: "height 0.3s ease",
+                    }}
+                  />
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "#7a8aa0",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {s.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "#11233d",
+                  }}
+                >
+                  {s.value}
+                </div>
               </div>
             ))}
           </div>
         </div>
 
+        {/* Revenue */}
         <div className="card" style={{ padding: 16 }}>
           <div
             className="card-h"
@@ -166,6 +262,7 @@ function DashboardPage() {
                     borderRadius: 999,
                     padding: "6px 10px",
                     cursor: "pointer",
+                    fontSize: 12,
                   }}
                 >
                   {rng[0].toUpperCase() + rng.slice(1)}
@@ -186,13 +283,15 @@ function DashboardPage() {
               ? rev.values.map((v, i) => (
                   <span
                     key={i}
-                    title={`${rev.labels[i]}: $${v}`}
+                    title={`${rev.labels[i] || ""}: $${v}`}
                     style={{
                       display: "block",
                       width: 8,
                       background: "#2f6fed",
                       borderRadius: 4,
-                      height: `${18 + (v / Math.max(...rev.values)) * 60}px`,
+                      height: `${
+                        18 + (v / Math.max(...(rev.values || [1]))) * 60
+                      }px`,
                     }}
                   />
                 ))
@@ -211,6 +310,7 @@ function DashboardPage() {
           </div>
         </div>
 
+        {/* Today */}
         <div className="card" style={{ padding: 16 }}>
           <div className="card-h" style={{ fontWeight: 800, marginBottom: 8 }}>
             Today
@@ -288,6 +388,11 @@ function DashboardPage() {
                 </span>
               </li>
             ))}
+            {!today.length && (
+              <li style={{ fontSize: 12, color: "#7a8aa0" }}>
+                No activity yet for today.
+              </li>
+            )}
           </ul>
         </div>
       </div>
@@ -297,6 +402,7 @@ function DashboardPage() {
         className="row"
         style={{ display: "grid", gridTemplateColumns: "2fr 2fr 1fr", gap: 12 }}
       >
+        {/* Departments (legend + total) */}
         <div className="card" style={{ padding: 16 }}>
           <div className="card-h" style={{ fontWeight: 800, marginBottom: 10 }}>
             Patient Overview{" "}
@@ -334,12 +440,12 @@ function DashboardPage() {
                   color: "#11233d",
                 }}
               >
-                1,890
+                {deptTotal.toLocaleString()}
                 <br />
                 <span
                   style={{ fontSize: 12, color: "#7a8aa0", fontWeight: 400 }}
                 >
-                  This Week
+                  This Period
                 </span>
               </div>
             </div>
@@ -353,66 +459,34 @@ function DashboardPage() {
                 gap: 8,
               }}
             >
-              <li>
-                <span
-                  className="dot"
-                  style={{
-                    display: "inline-block",
-                    width: 10,
-                    height: 10,
-                    borderRadius: 3,
-                    background: "#1fbf8f",
-                    marginRight: 8,
-                  }}
-                />{" "}
-                Emergency Medicine <b>35%</b>
-              </li>
-              <li>
-                <span
-                  className="dot"
-                  style={{
-                    display: "inline-block",
-                    width: 10,
-                    height: 10,
-                    borderRadius: 3,
-                    background: "#2f6fed",
-                    marginRight: 8,
-                  }}
-                />{" "}
-                General Medicine <b>28%</b>
-              </li>
-              <li>
-                <span
-                  className="dot"
-                  style={{
-                    display: "inline-block",
-                    width: 10,
-                    height: 10,
-                    borderRadius: 3,
-                    background: "#f4a534",
-                    marginRight: 8,
-                  }}
-                />{" "}
-                Internal Medicine <b>20%</b>
-              </li>
-              <li>
-                <span
-                  className="dot"
-                  style={{
-                    display: "inline-block",
-                    width: 10,
-                    height: 10,
-                    borderRadius: 3,
-                    background: "#c8d3ea",
-                    marginRight: 8,
-                  }}
-                />{" "}
-                Other Departments <b>17%</b>
-              </li>
+              {departments.length ? (
+                departments.slice(0, 4).map((d, i) => (
+                  <li key={d.name || i}>
+                    <span
+                      className="dot"
+                      style={{
+                        display: "inline-block",
+                        width: 10,
+                        height: 10,
+                        borderRadius: 3,
+                        background: deptColors[i] || "#c8d3ea",
+                        marginRight: 8,
+                      }}
+                    />{" "}
+                    {d.name || "Department"}{" "}
+                    <b>{typeof d.pct === "number" ? `${d.pct}%` : ""}</b>
+                  </li>
+                ))
+              ) : (
+                <li style={{ fontSize: 12, color: "#7a8aa0" }}>
+                  No department data yet.
+                </li>
+              )}
             </ul>
           </div>
         </div>
 
+        {/* Recent Activity */}
         <div className="card" style={{ padding: 16 }}>
           <div className="card-h" style={{ fontWeight: 800, marginBottom: 8 }}>
             Recent Activity
@@ -456,9 +530,15 @@ function DashboardPage() {
                 </div>
               </li>
             ))}
+            {!today.length && (
+              <li style={{ fontSize: 12, color: "#7a8aa0" }}>
+                No activity yet for today.
+              </li>
+            )}
           </ul>
         </div>
 
+        {/* Quick Links */}
         <div className="card" style={{ padding: 16 }}>
           <div className="card-h" style={{ fontWeight: 800, marginBottom: 8 }}>
             Quick Links
@@ -473,7 +553,7 @@ function DashboardPage() {
               gap: 10,
             }}
           >
-            {["Appointments", "Doctors", "Patients"].map((t, i) => (
+            {quickLinks.map((q, i) => (
               <li
                 key={i}
                 style={{
@@ -497,7 +577,7 @@ function DashboardPage() {
                   />
                   <div>
                     <div className="l1" style={{ fontWeight: 700 }}>
-                      {t}
+                      {q.label}
                     </div>
                     <div
                       className="l2"
@@ -507,7 +587,12 @@ function DashboardPage() {
                     </div>
                   </div>
                 </div>
-                <button className="btn ghost sm">Open</button>
+                <button
+                  className="btn ghost sm"
+                  onClick={() => navigate(q.path)}
+                >
+                  Open
+                </button>
               </li>
             ))}
           </ul>

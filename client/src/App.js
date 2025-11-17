@@ -22,6 +22,9 @@ import DoctorDetails from "./pages/DoctorDetails";
 import FAQ from "./pages/FAQ";
 import AudioCallRoom from "./pages/AudioCallRoom";
 import ChatRoom from "./pages/ChatRoom";
+import MyAppointments from "./pages/MyAppointments";
+import Profile from "./pages/Profile";
+import AdminPayments from "./pages/Admin/AdminPayments";
 
 export default function App() {
   return (
@@ -36,6 +39,8 @@ export default function App() {
         <Route path="/faq" element={<FAQ />} />
         <Route path="/audio/:roomId" element={<AudioCallRoom />} />
         <Route path="/chat/:roomId" element={<ChatRoom />} />
+        <Route path="/my-appointments" element={<MyAppointments />} />
+        <Route path="/profile" element={<Profile />} />
 
         {/* Public auth */}
         <Route path="/login" element={<Login />} />
@@ -131,6 +136,14 @@ export default function App() {
           element={
             <AdminRoute>
               <Services />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/payments"
+          element={
+            <AdminRoute>
+              <AdminPayments />
             </AdminRoute>
           }
         />

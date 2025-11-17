@@ -1,4 +1,6 @@
+// server/models/Patient.js
 import mongoose from "mongoose";
+
 const PatientSchema = new mongoose.Schema(
   {
     firstName: String,

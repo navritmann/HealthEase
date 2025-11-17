@@ -1,4 +1,3 @@
-// src/components/appointments/StepFourPayment.jsx
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import api from "../../api/axios";
@@ -12,42 +11,28 @@ import {
   Divider,
   Grid,
   Stack,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
 } from "@mui/material";
 
 export default function StepFourPayment({
   doctor,
   summary,
-  // NEW: all needed to quote & confirm
   appointmentId, // must come from Step 2 /appointments/hold
   bookingNo, // optional, from hold
   serviceCode, // e.g. "CARDIO_30"
   addOns = [], // e.g. ["ECHO"]
   appointmentType = "clinic",
-  patientDraft, // optional: carry Step 3 form to confirm
+  patientDraft, // not used here but kept for API symmetry
+  patientId,
   onBack,
-  onPay,
+  onPay, // not used in Stripe redirect flow but kept for compatibility
 }) {
-  const [method, setMethod] = useState("card");
-  const [card, setCard] = useState({
-    holder: "",
-    number: "",
-    expiry: "",
-    cvv: "",
-  });
-
   const [quote, setQuote] = useState(null); // { currency, items:[{label,amount}], total }
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState("");
-
   const [confirming, setConfirming] = useState(false);
-  const canConfirm = !!quote && !!appointmentId && !confirming;
 
-  const onCardChange = (e) =>
-    setCard((c) => ({ ...c, [e.target.name]: e.target.value }));
+  const canConfirm = !!quote && !!appointmentId && !confirming;
 
   // ---- Fetch quote whenever inputs change ----
   useEffect(() => {
@@ -77,7 +62,7 @@ export default function StepFourPayment({
     };
   }, [serviceCode, addOns, appointmentType]);
 
-  // ---- Confirm & Pay (fake gateway) ----
+  // ---- Confirm & Pay (Stripe only) ----
   const handleConfirm = async () => {
     if (!appointmentId) {
       setQuoteError(
@@ -87,26 +72,22 @@ export default function StepFourPayment({
     }
     setConfirming(true);
     try {
-      // Normally you'd charge the card first, then confirm with gateway result.
-      const paymentPayload = {
-        status: "paid", // simulate a success
-        currency: quote?.currency || "USD",
-        amount: quote?.total || 0,
-        gateway: method,
-        intentId: "demo_intent_id",
-        chargeId: "demo_charge_id",
-      };
-
-      const { data } = await api.post("/appointments/confirm", {
+      const { data } = await api.post("/payments/stripe/checkout", {
         appointmentId,
-        payment: paymentPayload,
-        patient: patientDraft || null,
+        serviceCode,
+        addOns,
+        appointmentType,
+        patientId,
       });
-
-      // Bubble up to the parent so it can go to Step 5
-      onPay?.(data);
+      if (data?.url) {
+        window.location.href = data.url; // Redirect to Stripe Checkout
+        return;
+      }
+      throw new Error("No checkout URL returned");
     } catch (e) {
-      setQuoteError(e?.response?.data?.error || "Payment/confirmation failed");
+      setQuoteError(
+        e?.response?.data?.error || e.message || "Failed to start checkout"
+      );
     } finally {
       setConfirming(false);
     }
@@ -158,7 +139,7 @@ export default function StepFourPayment({
         </Box>
 
         <Grid container spacing={2}>
-          {/* LEFT: Payment Gateway */}
+          {/* LEFT: Stripe payment section */}
           <Grid item xs={12} md={6}>
             <Box
               sx={{
@@ -169,100 +150,39 @@ export default function StepFourPayment({
               }}
             >
               <Typography sx={{ fontWeight: 700, mb: 1.25 }}>
-                Payment Gateway
+                Secure Payment
               </Typography>
-              <ToggleButtonGroup
-                value={method}
-                exclusive
-                onChange={(_e, v) => v && setMethod(v)}
-                sx={{ mb: 2 }}
+              <Box
+                sx={{
+                  borderRadius: 2,
+                  p: 2,
+                  bgcolor: "#F4F3FF",
+                  border: "1px solid #E0E7FF",
+                  mb: 2,
+                }}
               >
-                <ToggleButton
-                  value="card"
-                  sx={{ textTransform: "none", px: 1.5 }}
-                >
-                  💳&nbsp; Credit Card
-                </ToggleButton>
-                <ToggleButton
-                  value="paypal"
-                  sx={{ textTransform: "none", px: 1.5 }}
-                >
-                  🅿️&nbsp; Paypal
-                </ToggleButton>
-                <ToggleButton
-                  value="stripe"
-                  sx={{ textTransform: "none", px: 1.5 }}
-                >
-                  🟣&nbsp; Stripe
-                </ToggleButton>
-              </ToggleButtonGroup>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>
+                  Powered by Stripe
+                </Typography>
+                <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
+                  Your card details are entered on Stripe&apos;s secure checkout
+                  page. We never store your payment information on HealthEase.
+                </Typography>
+              </Box>
 
-              {method === "card" && (
-                <Stack spacing={1.5}>
-                  <Box>
-                    <Typography sx={{ fontSize: 12, mb: 0.5 }}>
-                      Card Holder Name
-                    </Typography>
-                    <TextField
-                      size="small"
-                      fullWidth
-                      name="holder"
-                      value={card.holder}
-                      onChange={onCardChange}
-                    />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontSize: 12, mb: 0.5 }}>
-                      Card Number
-                    </Typography>
-                    <TextField
-                      size="small"
-                      fullWidth
-                      name="number"
-                      value={card.number}
-                      onChange={onCardChange}
-                    />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontSize: 12, mb: 0.5 }}>
-                      Expire Date
-                    </Typography>
-                    <TextField
-                      size="small"
-                      fullWidth
-                      placeholder="MM/YY"
-                      name="expiry"
-                      value={card.expiry}
-                      onChange={onCardChange}
-                    />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontSize: 12, mb: 0.5 }}>CVV</Typography>
-                    <TextField
-                      size="small"
-                      fullWidth
-                      name="cvv"
-                      value={card.cvv}
-                      onChange={onCardChange}
-                    />
-                  </Box>
-                </Stack>
-              )}
-
-              {method !== "card" && (
-                <Box
-                  sx={{
-                    border: "1px dashed #E5E7EB",
-                    borderRadius: 2,
-                    p: 2,
-                    color: "text.secondary",
-                    fontSize: 14,
-                  }}
-                >
-                  Demo placeholder: {method.toUpperCase()} selected. (Static UI
-                  only)
-                </Box>
-              )}
+              <Stack spacing={1} sx={{ fontSize: 12, color: "text.secondary" }}>
+                <Typography>
+                  • You&apos;ll be redirected to Stripe to complete the payment.
+                </Typography>
+                <Typography>
+                  • Once payment is successful, your appointment will be
+                  confirmed automatically.
+                </Typography>
+                <Typography>
+                  • You will then be redirected back to HealthEase with your
+                  booking details.
+                </Typography>
+              </Stack>
             </Box>
           </Grid>
 
@@ -281,7 +201,7 @@ export default function StepFourPayment({
               </Typography>
 
               <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                Date & Time
+                Date &amp; Time
               </Typography>
               <Typography sx={{ fontWeight: 700, mb: 1 }}>
                 {summary?.dateLabel}
@@ -302,7 +222,7 @@ export default function StepFourPayment({
 
               {!quote && !quoteError && (
                 <Typography color="text.secondary">
-                  Calculating quote…
+                  {quoteLoading ? "Calculating quote…" : "Preparing quote…"}
                 </Typography>
               )}
 
@@ -373,7 +293,7 @@ export default function StepFourPayment({
           disabled={!canConfirm}
           onClick={handleConfirm}
         >
-          {confirming ? "Processing…" : "Confirm & Pay →"}
+          {confirming ? "Redirecting…" : "Pay securely with Stripe →"}
         </Button>
       </Box>
     </Card>
@@ -405,5 +325,6 @@ StepFourPayment.propTypes = {
   appointmentType: PropTypes.string,
   patientDraft: PropTypes.object,
   onBack: PropTypes.func.isRequired,
-  onPay: PropTypes.func.isRequired,
+  onPay: PropTypes.func, // kept for compatibility
+  patientId: PropTypes.string,
 };

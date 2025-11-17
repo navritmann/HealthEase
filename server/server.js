@@ -1,6 +1,6 @@
+import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import cors from "cors";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
@@ -14,7 +14,7 @@ import clinicRoutes from "./routes/clinicRoutes.js";
 import doctors from "./routes/doctors.js";
 import clinics from "./routes/clinics.js";
 import availability from "./routes/availability.js";
-import payments from "./routes/payments.js";
+import paymentsRoutes from "./routes/payments.js";
 import servicesRoutes from "./routes/services.js";
 import Appointment from "./models/Appointment.js";
 import videoRoutes from "./routes/video.js";
@@ -26,10 +26,23 @@ import adminPatients from "./routes/adminPatients.js";
 import adminAvailability from "./routes/adminAvailability.js";
 import adminClinics from "./routes/adminClinics.js";
 import adminServices from "./routes/adminServices.js";
+import adminPayments from "./routes/adminPayments.js";
 
-dotenv.config();
 const app = express();
 const httpServer = http.createServer(app);
+
+// CORS: allow Authorization header
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.options("/api/payments/stripe/checkout", cors());
+// 1) Mount the Stripe webhook route BEFORE body parsers
+app.use("/api/payments", paymentsRoutes);
 
 const io = new SocketIOServer(httpServer, {
   cors: { origin: "http://localhost:3000", methods: ["GET", "POST"] },
@@ -94,15 +107,6 @@ nsp.on("connection", (socket) => {
   });
 });
 
-// CORS: allow Authorization header
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-
 app.use(express.json());
 
 // Health
@@ -118,7 +122,6 @@ app.use("/api/doctors", doctors);
 app.use("/api/clinics", clinics);
 app.use("/api/services", servicesRoutes);
 app.use("/api/availability", availability);
-app.use("/api/payments", payments);
 app.use("/api/video", videoRoutes);
 
 app.use("/api/admin", adminStats);
@@ -129,6 +132,7 @@ app.use("/api/admin", adminPatients);
 app.use("/api/admin", adminAvailability);
 app.use("/api/admin", adminClinics);
 app.use("/api/admin", adminServices);
+app.use("/api/admin", adminPayments);
 
 // 404
 app.use((req, res) => res.status(404).json({ msg: "Route not found" }));

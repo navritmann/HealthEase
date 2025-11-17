@@ -54,11 +54,12 @@ export default function Register() {
     try {
       setLoading(true);
       const payload = {
-        name: `${form.firstName} ${form.lastName}`.trim(),
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
         email: form.email,
         password: form.password,
-        role: form.role,
-        phone: form.phone, // backend can ignore if unused
+        role: form.role, // "patient"
+        phone: form.phone,
       };
       await api.post("/auth/register", payload);
       navigate("/login");

@@ -1,5 +1,6 @@
 // server/controllers/authController.js
 import User from "../models/User.js";
+import Patient from "../models/Patient.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -9,16 +10,14 @@ const MIN_PASS = 6;
 
 export const registerUser = async (req, res) => {
   try {
-    // New UI sends: firstName, lastName, email, phone, password
-    // Old UI may send: name, email, password, role
     const {
       firstName = "",
       lastName = "",
       phone = "",
-      name, // legacy single name (optional)
       email,
       password,
-      role, // optional; defaults to "patient" in schema
+      role,
+      name, // legacy fallback, if any old UI still sends it
     } = req.body || {};
 
     const emailNorm = normalizeEmail(email);
@@ -34,7 +33,6 @@ export const registerUser = async (req, res) => {
     const exists = await User.findOne({ email: emailNorm });
     if (exists) return res.status(400).json({ msg: "User already exists" });
 
-    // Preferred display name = firstName + lastName; fallback to legacy 'name'
     const resolvedName =
       [firstName, lastName].filter(Boolean).join(" ").trim() ||
       (name || "").trim();
@@ -46,17 +44,31 @@ export const registerUser = async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
+    // 1️⃣ Create USER
     const user = await User.create({
       firstName: firstName || undefined,
       lastName: lastName || undefined,
       phone: phone || undefined,
-      name: resolvedName, // keep for compatibility
+      name: resolvedName,
       email: emailNorm,
       passwordHash: hash,
-      role: role || "patient", // if old UI sends role, we honor it
+      role: role || "patient",
     });
 
-    // Return both id and _id for compatibility with any client usage
+    // 2️⃣ Upsert PATIENT (based on email)
+    const patient = await Patient.findOneAndUpdate(
+      { email: emailNorm },
+      {
+        $set: {
+          firstName: firstName || undefined,
+          lastName: lastName || undefined,
+          phone: phone || "",
+          email: emailNorm,
+        },
+      },
+      { new: true, upsert: true }
+    );
+
     return res.status(201).json({
       msg: "Registration successful",
       user: {
@@ -70,6 +82,7 @@ export const registerUser = async (req, res) => {
         role: user.role,
         createdAt: user.createdAt,
       },
+      patientId: patient?._id, // optional, but nice to have
     });
   } catch (err) {
     res.status(500).json({ msg: "Server error", error: err.message });
@@ -86,7 +99,7 @@ export const loginUser = async (req, res) => {
     if (!ok) return res.status(400).json({ msg: "Invalid credentials" });
 
     const token = jwt.sign(
-      { id: user._id, userId: user._id, role: user.role }, // include both keys for safety
+      { id: user._id, userId: user._id, role: user.role, email: user.email }, // include both keys for safety
       process.env.JWT_SECRET,
       { expiresIn: "2h" }
     );

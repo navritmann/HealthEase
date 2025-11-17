@@ -10,7 +10,6 @@ const items = [
   { label: "Doctors' Schedule", to: "/admin/schedule" },
   { label: "Payments", to: "/admin/payments" },
   { label: "Services", to: "/admin/services" },
-  { label: "Messages", to: "/admin/messages", badge: 1 },
 ];
 
 export default function AdminSidebar() {
@@ -37,15 +36,6 @@ export default function AdminSidebar() {
           </NavLink>
         ))}
       </nav>
-
-      <div className="upgrade">
-        <div className="lock" />
-        <div className="up-title">
-          Unlock New Features & Maximize Your Hospital Management Efficiency
-        </div>
-        <button className="btn ghost">What's New?</button>
-        <button className="btn">Upgrade</button>
-      </div>
     </aside>
   );
 }

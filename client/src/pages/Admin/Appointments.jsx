@@ -1,5 +1,7 @@
+// client/src/pages/admin/Appointments.jsx
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../components/admin/AdminLayout";
+import api from "../../api/axios"; // 👈 use your axios instance
 
 export default function Appointments() {
   return (
@@ -24,24 +26,30 @@ function AppointmentsPage() {
   const [limit, setLimit] = useState(13);
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
+
   const status = tab === "All" ? "" : tab.toLowerCase();
   const pages = Math.max(1, Math.ceil(total / limit));
 
   const fetchData = async () => {
-    const url = new URL("/api/admin/appointments", window.location.origin);
-    if (status) url.searchParams.set("status", status);
-    if (q) url.searchParams.set("q", q);
-    url.searchParams.set("page", page);
-    url.searchParams.set("limit", limit);
-    const res = await fetch(url)
-      .then((r) => r.json())
-      .catch(() => ({ rows: [], total: 0 }));
-    setRows(res.rows || []);
-    setTotal(res.total || 0);
+    try {
+      const params = { page, limit };
+      if (status) params.status = status;
+      if (q) params.q = q;
+
+      // baseURL = http://localhost:5000/api from your api helper
+      const { data } = await api.get("/admin/appointments", { params });
+
+      setRows(data.rows || []);
+      setTotal(data.total || 0);
+    } catch (err) {
+      console.error("Admin appointments error:", err);
+      setRows([]);
+      setTotal(0);
+    }
   };
 
   useEffect(() => {
-    fetchData(); /* eslint-disable-next-line */
+    fetchData();
   }, [status, q, page, limit]);
 
   const tabs = [
@@ -54,16 +62,20 @@ function AppointmentsPage() {
   const cancelAppt = async (id) => {
     const ok = window.confirm("Cancel this appointment?");
     if (!ok) return;
-    const res = await fetch("/api/admin/appointments/cancel", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, reason: "admin_cancel" }),
-    }).then((r) => r.json());
-    if (res.ok) {
-      setPage(1);
-      fetchData();
-    } else {
-      alert(res.error || "Cancel failed");
+    try {
+      const { data } = await api.post("/admin/appointments/cancel", {
+        id,
+        reason: "admin_cancel",
+      });
+      if (data.ok) {
+        setPage(1);
+        fetchData();
+      } else {
+        alert(data.error || "Cancel failed");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Cancel failed");
     }
   };
 
@@ -72,16 +84,21 @@ function AppointmentsPage() {
     if (!start) return;
     const end = prompt("New end ISO (e.g. 2025-11-09T10:30:00Z):");
     if (!end) return;
-    const res = await fetch("/api/admin/appointments/reschedule", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, start, end }),
-    }).then((r) => r.json());
-    if (res.ok) {
-      setPage(1);
-      fetchData();
-    } else {
-      alert(res.error || "Reschedule failed");
+    try {
+      const { data } = await api.post("/admin/appointments/reschedule", {
+        id,
+        start,
+        end,
+      });
+      if (data.ok) {
+        setPage(1);
+        fetchData();
+      } else {
+        alert(data.error || "Reschedule failed");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Reschedule failed");
     }
   };
 

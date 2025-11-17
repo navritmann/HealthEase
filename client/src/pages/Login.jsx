@@ -68,7 +68,7 @@ export default function Login() {
 
       // admins have a separate page; others to dashboard
       if (data.user.role === "admin") navigate("/admin/login");
-      else navigate("/dashboard");
+      else navigate("/");
     } catch (err) {
       setError(err?.response?.data?.msg || "Invalid credentials");
     } finally {

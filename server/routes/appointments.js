@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Availability from "../models/Availability.js";
 import Appointment from "../models/Appointment.js";
 import Patient from "../models/Patient.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const r = Router();
 
@@ -15,8 +16,15 @@ function makeRoomId() {
 
 // ---------------- 1) HOLD ----------------
 r.post("/hold", async (req, res) => {
-  const { doctorId, clinicId, appointmentType, start, end, patientDraft } =
-    req.body;
+  const {
+    doctorId,
+    clinicId,
+    appointmentType,
+    start,
+    end,
+    patientDraft,
+    patientId,
+  } = req.body;
   const missing = [];
   if (!appointmentType) missing.push("appointmentType");
   if (!start) missing.push("start");
@@ -61,7 +69,7 @@ r.post("/hold", async (req, res) => {
         bookingNo: makeBookingNo(),
         doctorId,
         clinicId: clinicId || null,
-        patientId: patient?._id || null,
+        patientId: patientId || patient?._id || null,
         appointmentType,
         start,
         end,
@@ -191,6 +199,31 @@ r.post("/confirm", async (req, res) => {
   }
 });
 
+r.get("/patient/:patientId", authMiddleware, async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const rows = await Appointment.find({ patientId })
+      .populate("doctorId clinicId")
+      .sort({ start: -1 });
+
+    const data = rows.map((a) => ({
+      id: a._id,
+      bookingNo: a.bookingNo,
+      date: a.start,
+      status: a.status,
+      type: a.appointmentType,
+      doctor:
+        a.doctorId?.name ||
+        `${a.doctorId?.firstName || ""} ${a.doctorId?.lastName || ""}`.trim(),
+      clinic: a.clinicId?.name || "",
+      videoJoin: a.video?.joinUrl || null,
+    }));
+
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 // ---------------- 4) GET /api/appointments/:id ----------------
 r.get("/:id", async (req, res) => {
   const a = await Appointment.findById(req.params.id).populate(
@@ -198,6 +231,86 @@ r.get("/:id", async (req, res) => {
   );
   if (!a) return res.status(404).json({ error: "Not found" });
   res.json(a);
+});
+
+// ---------------- 5) PATIENT RESCHEDULE ----------------
+// POST /api/appointments/:id/reschedule
+r.post("/:id/reschedule", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { start } = req.body; // new start time (ISO string)
+
+    if (!start) {
+      return res.status(400).json({ error: "New start time is required" });
+    }
+
+    // Only patient accounts can reschedule
+    if (req.user?.role !== "patient") {
+      return res
+        .status(403)
+        .json({ error: "Only patient accounts can reschedule appointments" });
+    }
+
+    const appt = await Appointment.findById(id);
+    if (!appt) return res.status(404).json({ error: "Appointment not found" });
+
+    if (appt.status === "cancelled") {
+      return res
+        .status(400)
+        .json({ error: "Cancelled appointments cannot be rescheduled" });
+    }
+
+    const newStart = new Date(start);
+    if (isNaN(newStart.getTime())) {
+      return res.status(400).json({ error: "Invalid start datetime" });
+    }
+
+    // keep same duration as before
+    const durationMs = appt.end.getTime() - appt.start.getTime();
+    if (!durationMs || durationMs <= 0) {
+      return res.status(400).json({ error: "Invalid appointment duration" });
+    }
+    const newEnd = new Date(newStart.getTime() + durationMs);
+
+    // OPTIONAL: prevent hard overlaps for same doctor
+    const overlapping = await Appointment.findOne({
+      _id: { $ne: appt._id },
+      doctorId: appt.doctorId,
+      status: { $in: ["held", "confirmed", "rescheduled"] },
+      start: { $lt: newEnd },
+      end: { $gt: newStart },
+    });
+
+    if (overlapping) {
+      return res.status(409).json({
+        error:
+          "Doctor already has another appointment in this time range. Please pick another time.",
+      });
+    }
+
+    // update appointment
+    appt.start = newStart;
+    appt.end = newEnd;
+    appt.status = "rescheduled";
+
+    if (appt.video) {
+      appt.video.startsAt = newStart;
+      appt.video.endsAt = newEnd;
+    }
+
+    await appt.save();
+
+    return res.json({
+      id: appt._id,
+      bookingNo: appt.bookingNo,
+      status: appt.status,
+      start: appt.start,
+      end: appt.end,
+    });
+  } catch (e) {
+    console.error("Reschedule error:", e);
+    return res.status(500).json({ error: e.message || "Server error" });
+  }
 });
 
 export default r;

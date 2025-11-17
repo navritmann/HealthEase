@@ -5,15 +5,14 @@ import {
   Container,
   Typography,
   Stack,
+  Button,
 } from "@mui/material";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios.js";
 
-// Layout components
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-// Step components
 import StepOneTypeClinic from "../components/appointments/StepOneTypeClinic";
 import StepTwoDateTime from "../components/appointments/StepTwoDateTime";
 import StepThreeBasicInfo from "../components/appointments/StepThreeBasicInfo";
@@ -27,10 +26,24 @@ function useQuery() {
 
 export default function Appointments() {
   const q = useQuery();
+  const navigate = useNavigate();
 
   const doctorIdFromUrl = q.get("doctor") || "";
   const initialTypeFromUrl = q.get("type") || "clinic";
   const initialClinicFromUrl = q.get("clinic") || "";
+
+  // --- auth: read once from localStorage
+  const authToken = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "null");
+    } catch {
+      return null;
+    }
+  })();
+  const patientId = user?.id || user?._id || null;
+  const isPatient = !!authToken && role === "patient" && !!patientId;
 
   const [step, setStep] = useState(1);
   const [s1, setS1] = useState(null);
@@ -45,6 +58,32 @@ export default function Appointments() {
   const [loadingDoctor, setLoadingDoctor] = useState(Boolean(doctorIdFromUrl));
   const [errorDoctor, setErrorDoctor] = useState("");
   const [videoDetails, setVideoDetails] = useState(null);
+
+  /* ---------- block booking if not logged-in patient ---------- */
+  if (!isPatient) {
+    return (
+      <>
+        <Navbar />
+        <Container maxWidth="sm" sx={{ py: 10, textAlign: "center" }}>
+          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
+            Please sign in as a patient
+          </Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
+            You must be logged in with a patient account to book an appointment.
+          </Typography>
+          <Stack direction="row" spacing={1} justifyContent="center">
+            <Button variant="contained" onClick={() => navigate("/login")}>
+              Sign in
+            </Button>
+            <Button variant="outlined" onClick={() => navigate("/register")}>
+              Create account
+            </Button>
+          </Stack>
+        </Container>
+        <Footer />
+      </>
+    );
+  }
 
   /* ---------- FETCH DOCTOR ---------- */
   useEffect(() => {
@@ -63,6 +102,36 @@ export default function Appointments() {
     };
     fetchDoctor();
   }, [doctorIdFromUrl]);
+
+  /* ---------- Handle Stripe success redirect ---------- */
+  useEffect(() => {
+    const success = q.get("success");
+    const aid = q.get("aid");
+    const cs = q.get("cs");
+    if (success === "1" && aid) {
+      (async () => {
+        try {
+          if (cs) {
+            await api.get(`/payments/stripe/verify`, { params: { cs, aid } });
+          }
+
+          const { data } = await api.get(`/appointments/${aid}`);
+          if (data?.bookingNo) setBookingNo(data.bookingNo);
+          if (data?.video) {
+            setVideoDetails(data.video);
+            setS2((prev) => ({
+              ...(prev || {}),
+              videoJoinUrl: data.video.joinUrl,
+            }));
+          }
+          setAppointmentId(aid);
+          setStep(5);
+        } catch (e) {
+          console.error("Failed to fetch confirmed appointment:", e);
+        }
+      })();
+    }
+  }, [q]);
 
   /* ---------- FETCH SERVICES ---------- */
   useEffect(() => {
@@ -131,7 +200,6 @@ export default function Appointments() {
       : "Clinic";
   const doctorForStep = doctorIdFromUrl ? doctor : doctor || null;
 
-  /* ---------- Loading / Error UI ---------- */
   if (doctorIdFromUrl && loadingDoctor) {
     return (
       <Container maxWidth="md" sx={{ py: 8, textAlign: "center" }}>
@@ -154,7 +222,6 @@ export default function Appointments() {
     setSelectedAddOns([]);
   };
 
-  /* ---------- SAVE TO LOCALSTORAGE ---------- */
   useEffect(() => {
     const payload = {
       step,
@@ -168,12 +235,9 @@ export default function Appointments() {
     localStorage.setItem("he.booking", JSON.stringify(payload));
   }, [step, s1, s2, selectedService, selectedAddOns, appointmentId, bookingNo]);
 
-  /* ---------- MAIN RENDER ---------- */
   return (
     <>
       <Navbar />
-
-      {/* Background & Centering */}
       <Box
         sx={{
           bgcolor: "#f8fafa",
@@ -182,7 +246,7 @@ export default function Appointments() {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          pt: { xs: 10, md: 12 }, // space for navbar
+          pt: { xs: 10, md: 12 },
           pb: { xs: 6, md: 8 },
         }}
       >
@@ -232,6 +296,7 @@ export default function Appointments() {
                 doctorMeta: s1?.doctorMeta || null,
                 serviceCode: selectedService?.code || "CARDIO_30",
                 addOns: selectedAddOns,
+                patientId, // <-- pass it
               }}
               onBack={goBack}
               onNext={goNext}
@@ -270,6 +335,7 @@ export default function Appointments() {
               addOns={selectedAddOns || []}
               appointmentType={s1?.appointmentType || "clinic"}
               patientDraft={s3}
+              patientId={patientId} // <-- pass it
               onBack={goBack}
               onPay={(confirmed) => {
                 if (confirmed?.bookingNo) setBookingNo(confirmed.bookingNo);
@@ -323,7 +389,6 @@ export default function Appointments() {
           )}
         </Container>
       </Box>
-
       <Footer />
     </>
   );
