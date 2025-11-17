@@ -29,7 +29,7 @@ export default function AudioCallRoom() {
     if (!pin) return alert("Enter PIN first");
 
     setStatus("Connecting…");
-    socketRef.current = io("https://healthease-g67g.onrender.com/video", {
+    socketRef.current = io(`${process.env.REACT_APP_SOCKET_URL}/video`), {
       transports: ["websocket"],
       auth: { roomId, pin },
     });

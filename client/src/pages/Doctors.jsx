@@ -28,7 +28,9 @@ export default function Doctors() {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/doctors");
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_BASE_URL}/api/doctors`
+        );
         setDoctors(res.data);
       } catch (err) {
         console.error("Error fetching doctors:", err);

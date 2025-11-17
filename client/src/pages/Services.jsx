@@ -31,7 +31,7 @@ export default function Services() {
     const fetchServices = async () => {
       try {
         const res = await axios.get(
-          "https://healthease-g67g.onrender.com/api/services"
+          `${process.env.REACT_APP_API_BASE_URL}/api/services`
         );
         setServices(res.data);
       } catch (err) {

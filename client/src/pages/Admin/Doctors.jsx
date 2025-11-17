@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import AdminLayout from "../../components/admin/AdminLayout";
-import api from "../../api/axios"; // ✅ uses baseURL https://healthease-g67g.onrender.com/api
+import api from "../../api/axios"; // ✅ uses baseURL process.env.REACT_APP_API_BASE_URL/api
 
 export default function Doctors() {
   return (
