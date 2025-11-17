@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const api = axios.create({ baseURL: "http://localhost:5000/api" });
+const api = axios.create({
+  baseURL: "https://healthease-g67g.onrender.com/api",
+});
 
 // attach token on every request
 api.interceptors.request.use((config) => {

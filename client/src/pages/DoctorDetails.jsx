@@ -31,11 +31,11 @@ export default function DoctorDetails() {
     const fetchData = async () => {
       try {
         const docRes = await axios.get(
-          `http://localhost:5000/api/doctors/${id}`
+          `https://healthease-g67g.onrender.com/api/doctors/${id}`
         );
         setDoctor(docRes.data);
         const svcRes = await axios.get(
-          `http://localhost:5000/api/services/doctor/${id}`
+          `https://healthease-g67g.onrender.com/api/services/doctor/${id}`
         );
         setServices(svcRes.data);
       } catch (err) {

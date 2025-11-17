@@ -24,7 +24,7 @@ export default function ChatRoom() {
 
   const joinChat = () => {
     if (!pin) return alert("Enter PIN");
-    socketRef.current = io("http://localhost:5000/video", {
+    socketRef.current = io("https://healthease-g67g.onrender.com/video", {
       transports: ["websocket"],
       auth: { roomId, pin },
     });

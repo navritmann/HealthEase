@@ -36,7 +36,7 @@ function AppointmentsPage() {
       if (status) params.status = status;
       if (q) params.q = q;
 
-      // baseURL = http://localhost:5000/api from your api helper
+      // baseURL = https://healthease-g67g.onrender.com/api from your api helper
       const { data } = await api.get("/admin/appointments", { params });
 
       setRows(data.rows || []);

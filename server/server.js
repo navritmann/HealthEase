@@ -2,9 +2,9 @@ import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import { createServer } from "http";
-import { Server as SocketIOServer } from "socket.io";
 import http from "http";
+import { Server as SocketIOServer } from "socket.io";
+
 import authRoutes from "./routes/authRoutes.js";
 import appointmentRoutes from "./routes/appointments.js";
 import adminRoutes from "./routes/adminRoutes.js";
@@ -31,21 +31,28 @@ import adminPayments from "./routes/adminPayments.js";
 const app = express();
 const httpServer = http.createServer(app);
 
+// 🔐 FRONTEND ORIGIN (works for local + prod)
+const FRONTEND_ORIGIN = process.env.APP_BASE_URL || "http://localhost:3000";
+
 // CORS: allow Authorization header
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: FRONTEND_ORIGIN,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
 
+// Stripe webhook preflight
 app.options("/api/payments/stripe/checkout", cors());
+
 // 1) Mount the Stripe webhook route BEFORE body parsers
 app.use("/api/payments", paymentsRoutes);
 
+// Socket.IO (same origin as frontend)
 const io = new SocketIOServer(httpServer, {
-  cors: { origin: "http://localhost:3000", methods: ["GET", "POST"] },
+  cors: { origin: FRONTEND_ORIGIN, methods: ["GET", "POST"] },
 });
 
 const nsp = io.of("/video");
@@ -187,7 +194,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // --- Simple chat bridge in the /video namespace ---
+  // --- Simple chat bridge (fallback) ---
   socket.on("chat:send", ({ text, displayName }) => {
     const { roomId } = socket.data;
     if (!text || !text.trim()) return;
