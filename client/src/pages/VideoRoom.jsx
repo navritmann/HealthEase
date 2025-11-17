@@ -87,7 +87,7 @@ export default function VideoRoom() {
     if (!pin) return;
 
     setStatusMsg("Connecting…");
-    socketRef.current = io(`${process.env.REACT_APP_SOCKET_URL}/video`), {
+    socketRef.current = io(`${process.env.REACT_APP_SOCKET_URL}/video`, {
       transports: ["websocket"],
       auth: { roomId, pin },
     });
