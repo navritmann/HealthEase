@@ -251,7 +251,7 @@ export default function StepThreeBasicInfo({
                 helperText={errors.email || ""}
               />
             </Grid>
-            <Grid item xs={12} md={4}>
+            {/* <Grid item xs={12} md={4}>
               <Stack
                 direction="row"
                 justifyContent="space-between"
@@ -281,7 +281,7 @@ export default function StepThreeBasicInfo({
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
+            </Grid> */}
             <Grid item xs={12} md={4}>
               <Typography sx={{ fontSize: 12, mb: 0.5 }}>Symptoms</Typography>
               <TextField
@@ -293,7 +293,7 @@ export default function StepThreeBasicInfo({
               />
             </Grid>
 
-            <Grid item xs={12}>
+            {/* <Grid item xs={12}>
               <Typography sx={{ fontSize: 12, mb: 0.5 }}>Attachment</Typography>
               <Button
                 variant="text"
@@ -310,7 +310,7 @@ export default function StepThreeBasicInfo({
               >
                 {form.attachmentName ? form.attachmentName : "Upload File"}
               </Button>
-            </Grid>
+            </Grid> */}
 
             <Grid item xs={12}>
               <Typography sx={{ fontSize: 12, mb: 0.5 }}>

@@ -153,7 +153,7 @@ export default function Login() {
                 alignItems="center"
                 justifyContent="space-between"
               >
-                <FormControlLabel
+                {/* <FormControlLabel
                   control={
                     <Checkbox
                       checked={remember}
@@ -161,10 +161,10 @@ export default function Login() {
                     />
                   }
                   label="Remember me"
-                />
-                <Link to="/forgot-password" style={{ fontSize: 14 }}>
+                /> */}
+                {/* <Link to="/forgot-password" style={{ fontSize: 14 }}>
                   Forgot Password
-                </Link>
+                </Link> */}
               </Stack>
 
               {/* big rounded CTA like mock */}
@@ -192,23 +192,6 @@ export default function Login() {
               <Typography textAlign="center" mt={1} fontSize={14}>
                 Don’t have an account? <Link to="/register">Register</Link>
               </Typography>
-
-              <Divider sx={{ my: 2 }}>Or login with</Divider>
-
-              {/* social buttons like mock */}
-              <Button
-                variant="outlined"
-                startIcon={<GoogleIcon />}
-                sx={{
-                  textTransform: "none",
-                  borderRadius: 2,
-                  px: 2.5,
-                  minWidth: 120,
-                }}
-                onClick={() => alert("Google login coming soon")}
-              >
-                Google
-              </Button>
 
               <Typography
                 variant="body2"

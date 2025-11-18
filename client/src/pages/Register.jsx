@@ -296,7 +296,7 @@ export default function Register() {
             Already have an account? <Link to="/login">Login</Link>
           </Typography>
 
-          <Divider sx={{ my: 2 }}>Or Sign up with</Divider>
+          {/* <Divider sx={{ my: 2 }}>Or Sign up with</Divider>
 
           <Button
             variant="outlined"
@@ -310,7 +310,7 @@ export default function Register() {
             onClick={() => alert("Google sign-up coming soon")}
           >
             Continue with Google
-          </Button>
+          </Button> */}
         </CardContent>
       </Card>
     </Box>
