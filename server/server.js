@@ -124,7 +124,7 @@ app.get("/", (req, res) => res.send("HealthEase API Running 🚀"));
 app.use("/api/auth", authRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/clinics", clinicRoutes);
+// app.use("/api/clinics", clinicRoutes);
 // app.use("/api/doctors", doctorRoutes);
 app.use("/api/doctors", doctors);
 app.use("/api/clinics", clinics);

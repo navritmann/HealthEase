@@ -1,8 +1,15 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL,
-});
+const raw =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
+  process.env.REACT_APP_API_BASE_URL ||
+  process.env.API_BASE_URL || // optional extra
+  "http://localhost:5000"; // sane default
+
+const root = String(raw).replace(/\/+$/, ""); // strip trailing slash
+const baseURL = root.endsWith("/api") ? root : root + "/api"; // ensure /api
+
+const api = axios.create({ baseURL });
 
 // attach token on every request
 api.interceptors.request.use((config) => {
