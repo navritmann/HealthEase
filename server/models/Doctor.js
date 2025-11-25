@@ -3,6 +3,13 @@ import mongoose from "mongoose";
 
 const DoctorSchema = new mongoose.Schema(
   {
+    // 👇 link to login user (NOT required to avoid breaking old docs)
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
     name: { type: String, required: true, trim: true },
     specialty: { type: String, default: "" },
     rating: { type: Number, default: 0 },
@@ -10,7 +17,6 @@ const DoctorSchema = new mongoose.Schema(
     addressLine: { type: String, default: "" },
     services: [{ type: mongoose.Schema.Types.ObjectId, ref: "Service" }],
 
-    // Added fields for admin management:
     email: { type: String, default: "", trim: true },
     phone: { type: String, default: "", trim: true },
     clinics: [{ type: String, trim: true }],

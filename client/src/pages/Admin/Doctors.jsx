@@ -352,8 +352,10 @@ function EditModal({ id, doctor, onClose }) {
         phone: "",
         clinics: [],
         status: "Active",
+        tempPassword: "",
       }
     : doctor || {};
+
   const [form, setForm] = useState({
     name: base.name || "",
     specialty: base.specialty || "",
@@ -361,10 +363,13 @@ function EditModal({ id, doctor, onClose }) {
     phone: base.phone || "",
     clinics: (base.clinics || []).join(", "),
     status: base.status || "Active",
+    tempPassword: "", // only used when creating
   });
+
   const [saving, setSaving] = useState(false);
 
-  const onChange = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const onChange = (k) => (e) =>
+    setForm((prev) => ({ ...prev, [k]: e.target.value }));
 
   const submit = async () => {
     const body = {
@@ -378,7 +383,14 @@ function EditModal({ id, doctor, onClose }) {
         .filter(Boolean),
       status: form.status,
     };
+
+    // only send tempPassword on NEW doctor
+    if (isNew && form.tempPassword.trim()) {
+      body.tempPassword = form.tempPassword.trim();
+    }
+
     if (!body.name) return alert("Name is required");
+    if (!body.email) return alert("Email is required");
 
     setSaving(true);
     try {
@@ -387,7 +399,7 @@ function EditModal({ id, doctor, onClose }) {
       } else {
         await api.put(`/admin/doctors/${doctor._id || doctor.id}`, body);
       }
-      onClose(); // parent bumps version -> refresh
+      onClose();
     } catch (e) {
       alert(e?.response?.data?.error || "Save failed");
     } finally {
@@ -427,7 +439,7 @@ function EditModal({ id, doctor, onClose }) {
               <input
                 value={form.email}
                 onChange={onChange("email")}
-                placeholder="email@domain.com"
+                placeholder="doctor@example.com"
               />
             </label>
             <label>
@@ -454,6 +466,20 @@ function EditModal({ id, doctor, onClose }) {
                 <option>Disabled</option>
               </select>
             </label>
+            {isNew && (
+              <label>
+                Temporary Password (optional)
+                <input
+                  type="text"
+                  value={form.tempPassword}
+                  onChange={onChange("tempPassword")}
+                  placeholder="e.g. Doc@1234"
+                />
+                <small style={{ color: "#7a8aa0" }}>
+                  If left blank, the system will generate a random password.
+                </small>
+              </label>
+            )}
           </div>
         </div>
         <div className="modal-f">

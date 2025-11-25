@@ -28,7 +28,7 @@ export default function Login() {
   const [form, setForm] = useState({
     email: "",
     password: "",
-    role: "patient",
+    // role: "patient",
   });
 
   const [showPass, setShowPass] = useState(false);
@@ -50,25 +50,38 @@ export default function Login() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
+
     try {
-      setLoading(true);
-      // if your backend DOESN'T require role, send only {email,password}
+      // backend only needs email + password
       const payload = {
         email: form.email,
         password: form.password,
-        role: form.role,
       };
+
       const { data } = await api.post("/auth/login", payload);
+      const user = data.user;
 
+      // save auth info
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("role", data.user.role);
-      if (remember) localStorage.setItem("rememberEmail", form.email);
-      else localStorage.removeItem("rememberEmail");
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("role", user.role || "");
 
-      // admins have a separate page; others to dashboard
-      if (data.user.role === "admin") navigate("/admin/login");
-      else navigate("/");
+      if (remember) {
+        localStorage.setItem("rememberEmail", form.email);
+      } else {
+        localStorage.removeItem("rememberEmail");
+      }
+
+      // 🔑 route by role
+      if (user.role === "doctor") {
+        navigate("/doctor");
+      } else if (user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        // patient
+        navigate("/");
+      }
     } catch (err) {
       setError(err?.response?.data?.msg || "Invalid credentials");
     } finally {

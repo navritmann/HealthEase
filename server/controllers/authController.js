@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 const normalizeEmail = (e) => (e || "").trim().toLowerCase();
 const MIN_PASS = 6;
 
+// server/controllers/authController.js
 export const registerUser = async (req, res) => {
   try {
     const {
@@ -16,7 +17,7 @@ export const registerUser = async (req, res) => {
       phone = "",
       email,
       password,
-      role,
+      // role,  // ❌ DO NOT accept this from public signup
       name, // legacy fallback, if any old UI still sends it
     } = req.body || {};
 
@@ -44,7 +45,7 @@ export const registerUser = async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    // 1️⃣ Create USER
+    // 1️⃣ Create USER → always PATIENT
     const user = await User.create({
       firstName: firstName || undefined,
       lastName: lastName || undefined,
@@ -52,7 +53,7 @@ export const registerUser = async (req, res) => {
       name: resolvedName,
       email: emailNorm,
       passwordHash: hash,
-      role: role || "patient",
+      role: "patient", // ✅ force patient
     });
 
     // 2️⃣ Upsert PATIENT (based on email)
@@ -82,7 +83,7 @@ export const registerUser = async (req, res) => {
         role: user.role,
         createdAt: user.createdAt,
       },
-      patientId: patient?._id, // optional, but nice to have
+      patientId: patient?._id,
     });
   } catch (err) {
     res.status(500).json({ msg: "Server error", error: err.message });

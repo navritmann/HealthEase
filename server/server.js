@@ -27,6 +27,7 @@ import adminAvailability from "./routes/adminAvailability.js";
 import adminClinics from "./routes/adminClinics.js";
 import adminServices from "./routes/adminServices.js";
 import adminPayments from "./routes/adminPayments.js";
+import doctorPanel from "./routes/doctorPanel.js";
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -141,6 +142,7 @@ app.use("/api/admin", adminAvailability);
 app.use("/api/admin", adminClinics);
 app.use("/api/admin", adminServices);
 app.use("/api/admin", adminPayments);
+app.use("/api/doctor", doctorPanel);
 
 // 404
 app.use((req, res) => res.status(404).json({ msg: "Route not found" }));

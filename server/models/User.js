@@ -27,6 +27,12 @@ const userSchema = new mongoose.Schema(
       default: "patient",
       required: true,
     },
+
+    doctorProfile: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+      default: null,
+    },
   },
   { timestamps: true }
 );

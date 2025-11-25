@@ -5,8 +5,16 @@ export const authMiddleware = (req, res, next) => {
   if (!token) return res.status(401).json({ msg: "No token provided" });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // { userId, role }
-    req.user = decoded;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // normalize
+    req.user = {
+      id: decoded.userId || decoded.id,
+      userId: decoded.userId || decoded.id,
+      role: decoded.role,
+      email: decoded.email,
+    };
+
     next();
   } catch (err) {
     console.error("JWT verify error:", err.message);
@@ -17,5 +25,13 @@ export const authMiddleware = (req, res, next) => {
 export const adminCheck = (req, res, next) => {
   if (req.user?.role !== "admin")
     return res.status(403).json({ msg: "Admin access only" });
+  next();
+};
+
+// ✅ NEW: doctor-only guard
+export const doctorCheck = (req, res, next) => {
+  if (req.user?.role !== "doctor") {
+    return res.status(403).json({ msg: "Doctor access only" });
+  }
   next();
 };

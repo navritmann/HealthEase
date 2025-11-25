@@ -25,6 +25,8 @@ import ChatRoom from "./pages/ChatRoom";
 import MyAppointments from "./pages/MyAppointments";
 import Profile from "./pages/Profile";
 import AdminPayments from "./pages/Admin/AdminPayments";
+import DoctorDashboard from "./pages/doctor/DoctorDashboard";
+import DoctorRoute from "./components/DoctorRoute";
 
 export default function App() {
   return (
@@ -183,6 +185,15 @@ export default function App() {
         <Route
           path="*"
           element={<div style={{ padding: 24 }}>Not Found</div>}
+        />
+
+        <Route
+          path="/doctor"
+          element={
+            <DoctorRoute>
+              <DoctorDashboard />
+            </DoctorRoute>
+          }
         />
       </Routes>
     </BrowserRouter>
