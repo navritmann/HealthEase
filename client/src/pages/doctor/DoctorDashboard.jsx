@@ -1,8 +1,8 @@
-// src/pages/DoctorDashboard.jsx
+// src/pages/doctor/DoctorDashboard.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api/axios.js"; // 🔁 adjust path to where your axios file is
-import "./DoctorDashboard.css";
+import DoctorLayout from "../../components/doctor/DoctorLayout";
+import api from "../../api/axios";
 
 const RANGE_OPTIONS = [
   { value: "today", label: "Today" },
@@ -11,22 +11,28 @@ const RANGE_OPTIONS = [
 ];
 
 export default function DoctorDashboard() {
+  return (
+    <DoctorLayout>
+      <DashboardPage />
+      <footer className="footer">
+        <span>Copyright © 2025 Health Ease</span>
+        <nav>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms and Conditions</a>
+          <a href="#">Contact</a>
+        </nav>
+      </footer>
+    </DoctorLayout>
+  );
+}
+
+function DashboardPage() {
   const navigate = useNavigate();
   const [range, setRange] = useState("today");
   const [appointments, setAppointments] = useState([]);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-
-  // read doctor name from localStorage
-  const rawUser = localStorage.getItem("user");
-  let doctorName = "Doctor";
-  try {
-    const u = rawUser ? JSON.parse(rawUser) : null;
-    if (u?.name) doctorName = u.name;
-  } catch {
-    // ignore
-  }
 
   useEffect(() => {
     let cancelled = false;
@@ -77,18 +83,26 @@ export default function DoctorDashboard() {
     });
   };
 
+  const displayPatientName = (apt) => {
+    if (apt.patient && (apt.patient.firstName || apt.patient.lastName)) {
+      return `${apt.patient.firstName || ""} ${
+        apt.patient.lastName || ""
+      }`.trim();
+    }
+    return "Unknown patient";
+  };
+
   return (
-    <div className="doctor-layout">
-      <aside className="doctor-side-panel">
-        <div className="doctor-side-header">
-          <h2>Appointments</h2>
-          <div className="doctor-range-tabs">
+    <div className="page">
+      <div className="page-h">
+        <h2>My Appointments</h2>
+
+        <div className="h-actions">
+          <div className="tabs">
             {RANGE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
-                className={
-                  opt.value === range ? "range-tab active" : "range-tab"
-                }
+                className={`tab ${opt.value === range ? "active" : ""}`}
                 onClick={() => setRange(opt.value)}
               >
                 {opt.label}
@@ -96,145 +110,258 @@ export default function DoctorDashboard() {
             ))}
           </div>
         </div>
+      </div>
 
-        {loading && <p className="muted">Loading...</p>}
-        {err && <p className="error-text">{err}</p>}
+      {/* Main grid: left list + right details, like admin cards */}
+      <div
+        className="row"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "2fr 3fr",
+          gap: 12,
+          alignItems: "stretch",
+        }}
+      >
+        {/* LEFT: list of appointments */}
+        <div className="card" style={{ padding: 16, minHeight: 320 }}>
+          <div className="card-h" style={{ fontWeight: 800, marginBottom: 8 }}>
+            Schedule
+          </div>
 
-        {!loading && !appointments.length && !err && (
-          <p className="muted">No appointments in this range.</p>
-        )}
+          {loading && <p style={{ color: "#7a8aa0" }}>Loading…</p>}
+          {err && <p style={{ color: "#b45454" }}>{err}</p>}
 
-        <ul className="doctor-appt-list">
-          {appointments.map((apt) => {
-            const isSelected = selected && selected.id === apt.id;
-            const patientName =
-              apt.patient && (apt.patient.firstName || apt.patient.lastName)
-                ? `${apt.patient.firstName || ""} ${
-                    apt.patient.lastName || ""
-                  }`.trim()
-                : "Unknown patient";
+          {!loading && !err && !appointments.length && (
+            <p style={{ color: "#7a8aa0" }}>No appointments in this range.</p>
+          )}
 
-            return (
-              <li
-                key={apt.id}
-                className={
-                  isSelected ? "doctor-appt-item selected" : "doctor-appt-item"
-                }
-                onClick={() => setSelected(apt)}
-              >
-                <div className="appt-time">
-                  <span className="appt-time-main">
-                    {formatTime(apt.start)}
-                  </span>
-                  <span className="appt-time-sub">{formatDate(apt.start)}</span>
-                </div>
-                <div className="appt-main">
-                  <div className="appt-patient">{patientName}</div>
-                  <div className="appt-meta">
-                    <span className="pill pill-type">
-                      {apt.appointmentType}
-                    </span>
-                    <span className="pill pill-status">{apt.status}</span>
+          <ul
+            style={{
+              listStyle: "none",
+              margin: 0,
+              padding: 0,
+              display: "grid",
+              gap: 8,
+            }}
+          >
+            {appointments.map((apt) => {
+              const isSelected = selected && selected.id === apt.id;
+              const patientName = displayPatientName(apt);
+
+              return (
+                <li
+                  key={apt.id}
+                  onClick={() => setSelected(apt)}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: 10,
+                    borderRadius: 10,
+                    cursor: "pointer",
+                    background: isSelected ? "#f0f5ff" : "#ffffff",
+                    border: isSelected
+                      ? "1px solid #2f6fed"
+                      : "1px solid #e1e7f5",
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", gap: 10, alignItems: "center" }}
+                  >
+                    <div
+                      className="avatar"
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 999,
+                        background: "#5b8cff",
+                        display: "grid",
+                        placeItems: "center",
+                        color: "#fff",
+                        fontWeight: 700,
+                        fontSize: 14,
+                      }}
+                    >
+                      {patientName
+                        .split(" ")
+                        .map((x) => x[0])
+                        .slice(0, 2)
+                        .join("")}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600 }}>{patientName}</div>
+                      <div style={{ fontSize: 12, color: "#7a8aa0" }}>
+                        {formatTime(apt.start)} •{" "}
+                        {apt.appointmentType || "Appointment"}
+                      </div>
+                    </div>
                   </div>
-                  {apt.clinic && (
-                    <div className="appt-clinic">{apt.clinic.name}</div>
+                  <div style={{ textAlign: "right" }}>
+                    <div
+                      className="pill"
+                      style={{
+                        fontSize: 11,
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {apt.status}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#7a8aa0" }}>
+                      {formatDate(apt.start)}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {/* RIGHT: appointment details */}
+        <div className="card" style={{ padding: 16 }}>
+          {!selected && (
+            <div
+              style={{
+                fontSize: 14,
+                color: "#7a8aa0",
+                display: "grid",
+                placeItems: "center",
+                minHeight: 240,
+              }}
+            >
+              Select an appointment from the left to see details.
+            </div>
+          )}
+
+          {selected && (
+            <>
+              <div
+                className="card-h"
+                style={{ fontWeight: 800, marginBottom: 8 }}
+              >
+                Next Patient
+              </div>
+
+              <div
+                className="details-row"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: 16,
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 700,
+                      marginBottom: 4,
+                    }}
+                  >
+                    {displayPatientName(selected)}
+                  </div>
+                  <div style={{ fontSize: 13, color: "#7a8aa0" }}>
+                    {selected.patient?.email || "—"} •{" "}
+                    {selected.patient?.phone || "—"}
+                  </div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: 14,
+                    }}
+                  >
+                    {formatTime(selected.start)} – {formatTime(selected.end)}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#7a8aa0" }}>
+                    {formatDate(selected.start)}
+                  </div>
+                  <div
+                    className="pill"
+                    style={{
+                      marginTop: 4,
+                      fontSize: 11,
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {selected.status}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className="details-grid"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, minmax(0,1fr))",
+                  gap: 16,
+                  marginBottom: 16,
+                }}
+              >
+                <div>
+                  <h3 style={{ fontSize: 13, marginBottom: 4 }}>Appointment</h3>
+                  <p style={{ fontSize: 13 }}>
+                    Type:{" "}
+                    <strong>{selected.appointmentType || "Appointment"}</strong>
+                  </p>
+                  {selected.bookingNo && (
+                    <p style={{ fontSize: 13 }}>
+                      Booking #: <code>{selected.bookingNo}</code>
+                    </p>
                   )}
                 </div>
-              </li>
-            );
-          })}
-        </ul>
-      </aside>
 
-      <main className="doctor-main">
-        <header className="doctor-main-header">
-          <div>
-            <h1>Welcome, Dr. {doctorName}</h1>
-            <p className="muted">
-              View your schedule and join virtual consultations.
-            </p>
-          </div>
-        </header>
-
-        {!selected && (
-          <div className="doctor-main-empty">
-            <p>Select an appointment from the left to see details.</p>
-          </div>
-        )}
-
-        {selected && (
-          <section className="doctor-details-card">
-            <div className="details-row">
-              <div>
-                <h2>Next patient</h2>
-                <p className="details-patient">
-                  {selected.patient &&
-                  (selected.patient.firstName || selected.patient.lastName)
-                    ? `${selected.patient.firstName || ""} ${
-                        selected.patient.lastName || ""
-                      }`.trim()
-                    : "Unknown patient"}
-                </p>
-              </div>
-              <div className="details-time-block">
-                <span className="details-time-main">
-                  {formatTime(selected.start)} – {formatTime(selected.end)}
-                </span>
-                <span className="details-time-sub">
-                  {formatDate(selected.start)}
-                </span>
-              </div>
-            </div>
-
-            <div className="details-grid">
-              <div>
-                <h3>Appointment</h3>
-                <p>
-                  Type: <strong>{selected.appointmentType}</strong>
-                </p>
-                <p>
-                  Status: <strong>{selected.status}</strong>
-                </p>
-                {selected.bookingNo && (
-                  <p>
-                    Booking #: <code>{selected.bookingNo}</code>
+                <div>
+                  <h3 style={{ fontSize: 13, marginBottom: 4 }}>Clinic</h3>
+                  <p style={{ fontSize: 13 }}>
+                    {selected.clinic?.name || "Virtual"}
                   </p>
-                )}
-              </div>
-
-              <div>
-                <h3>Patient contact</h3>
-                <p>Email: {selected.patient?.email || "—"}</p>
-                <p>Phone: {selected.patient?.phone || "—"}</p>
-              </div>
-
-              <div>
-                <h3>Clinic</h3>
-                <p>{selected.clinic?.name || "Virtual"}</p>
-                <p className="muted">{selected.clinic?.addressLine || ""}</p>
-              </div>
-            </div>
-
-            {selected.video && selected.video.roomId && (
-              <div className="details-actions">
-                <button className="btn-primary" onClick={handleJoinCall}>
-                  Join {selected.video.type} session
-                </button>
-                {selected.video.joinUrl && (
-                  <a
-                    href={selected.video.joinUrl}
-                    className="btn-link"
-                    target="_blank"
-                    rel="noreferrer"
+                  <p
+                    style={{
+                      fontSize: 12,
+                      color: "#7a8aa0",
+                      margin: 0,
+                    }}
                   >
-                    Open join URL
-                  </a>
-                )}
+                    {selected.clinic?.addressLine || ""}
+                  </p>
+                </div>
+
+                <div>
+                  <h3 style={{ fontSize: 13, marginBottom: 4 }}>
+                    Notes / Type
+                  </h3>
+                  <p style={{ fontSize: 13 }}>
+                    Channel: <strong>{selected.video?.type || "Clinic"}</strong>
+                  </p>
+                  {/* You can add more fields here later (reason, notes, etc.) */}
+                </div>
               </div>
-            )}
-          </section>
-        )}
-      </main>
+
+              {selected.video && selected.video.roomId && (
+                <div
+                  className="details-actions"
+                  style={{ display: "flex", gap: 8 }}
+                >
+                  <button className="btn primary" onClick={handleJoinCall}>
+                    Join {selected.video.type} session
+                  </button>
+                  {selected.video.joinUrl && (
+                    <button
+                      className="btn ghost"
+                      onClick={() =>
+                        window.open(selected.video.joinUrl, "_blank")
+                      }
+                    >
+                      Open join URL
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
