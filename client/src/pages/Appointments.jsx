@@ -200,6 +200,141 @@ export default function Appointments() {
       : "Clinic";
   const doctorForStep = doctorIdFromUrl ? doctor : doctor || null;
 
+  // Step 5: go to My Appointments so user can reschedule with your existing logic
+  const handleRescheduleFromConfirmation = () => {
+    // change this path if your route is different
+    navigate("/my-appointments");
+    // e.g. navigate(`/my-appointments?booking=${bookingNo || ""}`);
+  };
+
+  // Make this async so we can fetch from the API if needed
+  const handleAddToCalendar = async () => {
+    let startLocal = null;
+
+    // 1) Try to build start time from Step 2 state (normal flow)
+    if (s2?.dateISO && s2?.time) {
+      const m = String(s2.time).match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      if (m) {
+        let hours = parseInt(m[1], 10);
+        const minutes = parseInt(m[2], 10);
+        const ampm = m[3].toUpperCase();
+        if (ampm === "PM" && hours !== 12) hours += 12;
+        if (ampm === "AM" && hours === 12) hours = 0;
+
+        const d = new Date(`${s2.dateISO}T00:00:00`);
+        d.setHours(hours, minutes, 0, 0);
+        startLocal = d;
+      }
+    }
+
+    // 2) If s2 is empty (Stripe redirect case), fetch the appointment by id
+    if (!startLocal && appointmentId) {
+      try {
+        const { data } = await api.get(`/appointments/${appointmentId}`);
+        const startRaw =
+          data.start || data.date || data.startTime || data.startAt;
+
+        if (startRaw) {
+          startLocal = new Date(startRaw);
+        }
+      } catch (e) {
+        console.error("Failed to load appointment for calendar:", e);
+      }
+    }
+
+    // Still nothing? Then we really don't know the time.
+    if (!startLocal) {
+      alert("Could not determine appointment date & time. Please try again.");
+      return;
+    }
+
+    const durationMins = selectedService?.durationMins || 30;
+    const endLocal = new Date(startLocal.getTime() + durationMins * 60000);
+
+    const pad = (n) => String(n).padStart(2, "0");
+    const formatICSDate = (d) =>
+      `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(
+        d.getUTCDate()
+      )}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`;
+
+    const escapeICS = (str = "") =>
+      String(str)
+        .replace(/\\/g, "\\\\")
+        .replace(/;/g, "\\;")
+        .replace(/,/g, "\\,")
+        .replace(/\n/g, "\\n");
+
+    const joinUrl = videoDetails?.joinUrl || s2?.videoJoinUrl;
+
+    const title =
+      s1?.appointmentType === "video" || s1?.appointmentType === "audio"
+        ? `Online appointment with ${doctorForStep?.name || "provider"}`
+        : `Clinic appointment with ${doctorForStep?.name || "provider"}`;
+
+    const timeOptions = { hour: "2-digit", minute: "2-digit" };
+    const timeRange = `${startLocal.toLocaleTimeString(
+      [],
+      timeOptions
+    )} - ${endLocal.toLocaleTimeString(
+      [],
+      timeOptions
+    )} ${startLocal.toLocaleDateString()}`;
+
+    const detailsLines = [
+      `When: ${timeRange}`,
+      `Service: ${selectedService?.name || ""}`,
+      selectedAddOns?.length
+        ? `Add-ons: ${selectedAddOns
+            .map(
+              (code) =>
+                selectedService?.addOns?.find((a) => a.code === code)?.name ||
+                code
+            )
+            .join(", ")}`
+        : null,
+      `Type: ${apptTypeLabel}`,
+      clinicName ? `Clinic: ${clinicName}` : null,
+      bookingNo ? `Booking No: ${bookingNo}` : null,
+      joinUrl ? `Join link: ${joinUrl}` : null,
+    ].filter(Boolean);
+
+    const description = detailsLines.join("\n");
+    const location =
+      s1?.appointmentType === "video" || s1?.appointmentType === "audio"
+        ? "Online"
+        : doctorForStep?.addressLine || clinicName || "";
+
+    const dtStart = formatICSDate(startLocal);
+    const dtEnd = formatICSDate(endLocal);
+    const dtStamp = formatICSDate(new Date());
+
+    const ics = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//HealthEase//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:${(bookingNo || Date.now()).toString()}@healthease.local
+DTSTAMP:${dtStamp}
+DTSTART:${dtStart}
+DTEND:${dtEnd}
+SUMMARY:${escapeICS(title)}
+DESCRIPTION:${escapeICS(description)}
+LOCATION:${escapeICS(location)}
+END:VEVENT
+END:VCALENDAR`;
+
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `appointment-${bookingNo || "healthease"}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (doctorIdFromUrl && loadingDoctor) {
     return (
       <Container maxWidth="md" sx={{ py: 8, textAlign: "center" }}>
@@ -381,9 +516,8 @@ export default function Appointments() {
               }}
               bookingNumber={bookingNo || "TBD"}
               onBack={goBack}
-              onAddCalendar={() =>
-                window.open(videoDetails?.joinUrl || "#", "_blank")
-              }
+              onReschedule={handleRescheduleFromConfirmation}
+              onAddCalendar={handleAddToCalendar}
               onStartNew={handleStartNew}
             />
           )}

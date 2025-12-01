@@ -19,7 +19,9 @@ const DoctorSchema = new mongoose.Schema(
 
     email: { type: String, default: "", trim: true },
     phone: { type: String, default: "", trim: true },
-    clinics: [{ type: String, trim: true }],
+    // clinics: [{ type: String, trim: true }],
+    clinics: [{ type: mongoose.Schema.Types.ObjectId, ref: "Clinic" }],
+
     status: {
       type: String,
       enum: ["Active", "On Leave", "Disabled"],

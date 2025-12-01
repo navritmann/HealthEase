@@ -208,13 +208,34 @@ export default function StepTwoDateTime({
           (a, b) => timeToMinutes(a.time) - timeToMinutes(b.time)
         );
 
-        setSlots(deduped);
+        // If the selected date is today, mark any time earlier than "now" as unavailable
+        const today = todayLocal();
+        const todayISO = today.toISOString().slice(0, 10);
+        let finalSlots = deduped;
+        if (dateISO === todayISO) {
+          const now = new Date();
+          const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
-        // auto-select first available from the de-duplicated list
-        const first = deduped.find((s) => s.available);
+          finalSlots = deduped.map((slot) => {
+            const mins = timeToMinutes(slot.time);
+            if (mins <= nowMinutes) {
+              return { ...slot, available: false };
+            }
+            return slot;
+          });
+        }
+
+        setSlots(finalSlots);
+
+        // auto-select first available from the final de-duplicated list
+        const first = finalSlots.find((s) => s.available);
         setSelectedTime(first ? first.time : "");
       } catch (e) {
-        setError("Failed to load slots");
+        const msg =
+          e?.response?.data?.error ||
+          e?.message ||
+          "Failed to load slots. Please try again.";
+        setError(msg);
         setSlots([]);
         setSelectedTime("");
       } finally {
@@ -238,6 +259,17 @@ export default function StepTwoDateTime({
 
   const handleContinue = async () => {
     const startISO = toISO(dateISO, selectedTime);
+    if (!startISO) return;
+
+    // Extra guard: prevent booking in the past (date + time already passed)
+    const now = new Date();
+    if (new Date(startISO) < now) {
+      setError(
+        "This time slot has already passed. Please choose a future time."
+      );
+      return;
+    }
+
     const endISO = addMinutesISO(startISO, 30);
     try {
       const body = {
@@ -255,8 +287,12 @@ export default function StepTwoDateTime({
         appointmentId: res.data?.id,
         bookingNo: res.data?.bookingNo,
       });
-    } catch {
-      onNext({ dateISO, time: selectedTime });
+    } catch (e) {
+      const msg =
+        e?.response?.data?.error ||
+        e?.message ||
+        "We couldn’t reserve this slot. Please pick another time.";
+      setError(msg);
     }
   };
 
@@ -462,7 +498,10 @@ export default function StepTwoDateTime({
                             label={s.time}
                             selected={s.time === selectedTime}
                             disabled={!s.available}
-                            onClick={() => setSelectedTime(s.time)}
+                            onClick={() => {
+                              setSelectedTime(s.time);
+                              setError(""); // clear any previous error
+                            }}
                           />
                         ))}
                       </Stack>
