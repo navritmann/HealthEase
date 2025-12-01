@@ -10,10 +10,11 @@ import {
   Rating,
   Divider,
   Paper,
+  Link as MLink,
 } from "@mui/material";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link as RouterLink } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import TwitterIcon from "@mui/icons-material/Twitter";
