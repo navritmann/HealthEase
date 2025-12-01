@@ -15,14 +15,13 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
 
 export default function FAQ() {
-  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const handleChange = (panel) => (_e, isExpanded) =>
     setExpanded(isExpanded ? panel : false);
@@ -210,7 +209,10 @@ export default function FAQ() {
               bgcolor: "#0aa07a",
               "&:hover": { bgcolor: "#088a69" },
             }}
-            onClick={() => navigate("/contact")}
+            onClick={() =>
+              (window.location.href =
+                "mailto:info@healthease.com?subject=Support%20Request")
+            }
           >
             Contact Support
           </Button>
@@ -223,7 +225,14 @@ export default function FAQ() {
             {/* Col 1: Logo + blurb + social */}
             <Grid item xs={12} md={4}>
               <Stack spacing={1.5}>
-                <Stack direction="row" spacing={1.25} alignItems="center">
+                <Stack
+                  direction="row"
+                  spacing={1.25}
+                  alignItems="center"
+                  component={RouterLink}
+                  to="/"
+                  sx={{ textDecoration: "none" }}
+                >
                   <Box
                     component="img"
                     src="/images/logo.png"
@@ -247,21 +256,27 @@ export default function FAQ() {
                 </Typography>
                 <Stack direction="row" spacing={1.5} sx={{ mt: 0.5 }}>
                   <MLink
-                    href="#"
+                    href="https://twitter.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     sx={{ color: "#0a3e57" }}
                     aria-label="Twitter"
                   >
                     <TwitterIcon fontSize="small" />
                   </MLink>
                   <MLink
-                    href="#"
+                    href="https://facebook.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     sx={{ color: "#0a3e57" }}
                     aria-label="Facebook"
                   >
                     <FacebookIcon fontSize="small" />
                   </MLink>
                   <MLink
-                    href="#"
+                    href="https://instagram.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     sx={{ color: "#0a3e57" }}
                     aria-label="Instagram"
                   >
@@ -284,22 +299,80 @@ export default function FAQ() {
                   { label: "Doctors & Specialists", to: "/#doctors" },
                   { label: "FAQs", to: "/#faq" },
                   { label: "Blog", to: "#" },
-                  { label: "Contact Us", to: "/contact" },
-                ].map((l) => (
-                  <MLink
-                    key={l.label}
-                    component={RouterLink}
-                    to={l.to}
-                    underline="none"
-                    sx={{
-                      color: "text.secondary",
-                      fontSize: 14,
-                      "&:hover": { color: "#0aa07a" },
-                    }}
-                  >
-                    {l.label}
-                  </MLink>
-                ))}
+                  { label: "Contact Us", to: "mailto:info@healthease.com" },
+                ].map((l) => {
+                  const isSectionLink = l.to.startsWith("/#");
+                  const isPlaceholder = l.to === "#";
+                  const isMail = l.to.startsWith("mailto:");
+
+                  if (isPlaceholder) {
+                    return (
+                      <MLink
+                        key={l.label}
+                        href="#"
+                        underline="none"
+                        sx={{
+                          color: "text.secondary",
+                          fontSize: 14,
+                          "&:hover": { color: "#0aa07a" },
+                        }}
+                      >
+                        {l.label}
+                      </MLink>
+                    );
+                  }
+
+                  if (isMail) {
+                    return (
+                      <MLink
+                        key={l.label}
+                        href={l.to}
+                        underline="none"
+                        sx={{
+                          color: "text.secondary",
+                          fontSize: 14,
+                          "&:hover": { color: "#0aa07a" },
+                        }}
+                      >
+                        {l.label}
+                      </MLink>
+                    );
+                  }
+
+                  if (isSectionLink) {
+                    return (
+                      <MLink
+                        key={l.label}
+                        component="a"
+                        href={l.to}
+                        underline="none"
+                        sx={{
+                          color: "text.secondary",
+                          fontSize: 14,
+                          "&:hover": { color: "#0aa07a" },
+                        }}
+                      >
+                        {l.label}
+                      </MLink>
+                    );
+                  }
+
+                  return (
+                    <MLink
+                      key={l.label}
+                      component={RouterLink}
+                      to={l.to}
+                      underline="none"
+                      sx={{
+                        color: "text.secondary",
+                        fontSize: 14,
+                        "&:hover": { color: "#0aa07a" },
+                      }}
+                    >
+                      {l.label}
+                    </MLink>
+                  );
+                })}
               </Stack>
             </Grid>
 

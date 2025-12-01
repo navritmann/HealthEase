@@ -16,7 +16,6 @@ import {
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import AssignmentIndRoundedIcon from "@mui/icons-material/AssignmentIndRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import { useNavigate } from "react-router-dom";
@@ -82,19 +81,19 @@ const YT_ID = "v3n2BDKwTq8";
 
 const DOCTORS = [
   {
-    name: "Dr. Emily Carter",
+    name: "Dr. Sarah Johnson",
     specialty: "Cardiologist",
-    photo: "/images/doctors/doc-1.png",
+    photo: "https://cdn-icons-png.flaticon.com/512/5003/5003090.png",
   },
   {
-    name: "Dr. Emily Carter",
-    specialty: "Cardiologist",
-    photo: "/images/doctors/doc-2.png",
+    name: "Dr. Rajesh Patel",
+    specialty: "General Physician",
+    photo: "https://cdn-icons-png.flaticon.com/512/5003/5003090.png",
   },
   {
-    name: "Dr. Emily Carter",
-    specialty: "Cardiologist",
-    photo: "/images/doctors/doc-3.png",
+    name: "Dr. Michael Brown",
+    specialty: "Psychologist",
+    photo: "https://cdn-icons-png.flaticon.com/512/5003/5003090.png",
   },
 ];
 
@@ -164,6 +163,7 @@ export default function Home() {
     const dx = e.changedTouches[0].clientX - touchRef.current.x;
     if (Math.abs(dx) > 40) dx < 0 ? next() : prev();
   };
+
   function FaqRow({ item, expanded, setExpanded, isFirst }) {
     const open = expanded === item.id;
     return (
@@ -221,6 +221,20 @@ export default function Home() {
       ...(clinicId ? { clinic: clinicId } : {}),
     });
     navigate(`/appointments?${params.toString()}`);
+  };
+
+  // simple click handler for virtual call controls
+  const handleControlClick = (key, alt) => {
+    if (key === "chat") {
+      navigate("/appointments");
+      return;
+    }
+    if (key === "end") {
+      alert("Call ended (demo).");
+      return;
+    }
+    // mic / video / screen – demo feedback
+    alert(`${alt} clicked (demo control).`);
   };
 
   return (
@@ -616,6 +630,11 @@ export default function Home() {
                     </Box>
                     <Button
                       aria-label="open"
+                      onClick={() =>
+                        document
+                          .getElementById("doctors")
+                          ?.scrollIntoView({ behavior: "smooth" })
+                      }
                       sx={{
                         minWidth: 0,
                         width: 36,
@@ -651,6 +670,11 @@ export default function Home() {
                       </Typography>
                       <Button
                         variant="contained"
+                        onClick={() =>
+                          document
+                            .getElementById("compassion")
+                            ?.scrollIntoView({ behavior: "smooth" })
+                        }
                         sx={{
                           textTransform: "none",
                           fontWeight: 700,
@@ -710,6 +734,11 @@ export default function Home() {
                     </Box>
                     <Button
                       aria-label="open"
+                      onClick={() =>
+                        document
+                          .getElementById("services")
+                          ?.scrollIntoView({ behavior: "smooth" })
+                      }
                       sx={{
                         minWidth: 0,
                         width: 36,
@@ -973,6 +1002,7 @@ export default function Home() {
                     <Box
                       key={c.key}
                       aria-label={c.alt}
+                      onClick={() => handleControlClick(c.key, c.alt)}
                       sx={{
                         width: 32,
                         height: 32,
@@ -1184,7 +1214,7 @@ export default function Home() {
                       </Typography>
                     </Box>
 
-                    <Button
+                    {/* <Button
                       size="small"
                       variant="contained"
                       onClick={() =>
@@ -1203,7 +1233,7 @@ export default function Home() {
                       }}
                     >
                       Book
-                    </Button>
+                    </Button> */}
                   </Box>
                 </Box>
               </Grid>
@@ -1219,12 +1249,13 @@ export default function Home() {
           >
             <Button
               variant="contained"
+              onClick={() => navigate("/doctors")}
               endIcon={<ArrowForwardRoundedIcon />}
-              onClick={() =>
-                document
-                  .getElementById("doctor")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
+              // onClick={() =>
+              //   document
+              //     .getElementById("doctors")
+              //     ?.scrollIntoView({ behavior: "smooth" })
+              // }
               sx={{
                 borderRadius: 999,
                 px: 2.8,

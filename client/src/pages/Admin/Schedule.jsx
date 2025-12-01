@@ -305,7 +305,43 @@ function AddSlotModal({
   });
   const [saving, setSaving] = useState(false);
 
-  const onChange = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  // NEW: clinics assigned to this doctor
+  const [clinicOptions, setClinicOptions] = useState([]);
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      try {
+        const { data } = await api.get("/admin/clinics", {
+          params: { limit: 500 },
+        });
+        const rows = Array.isArray(data?.rows) ? data.rows : data || [];
+
+        // keep only clinics where this doctor is assigned
+        const filtered = rows.filter((c) =>
+          (c.doctors || []).some((dId) => String(dId) === String(doctorId))
+        );
+
+        if (!cancel) setClinicOptions(filtered);
+      } catch (e) {
+        if (!cancel) setClinicOptions([]);
+      }
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [doctorId]);
+
+  const onChange = (k) => (e) => {
+    const value = e.target.value;
+    setForm((prev) => {
+      const next = { ...prev, [k]: value };
+      // if type is changed away from clinic/home_visit, clear clinicId
+      if (k === "type" && value !== "clinic" && value !== "home_visit") {
+        next.clinicId = "";
+      }
+      return next;
+    });
+  };
   const onCheck = (k) => (e) => setForm({ ...form, [k]: e.target.checked });
 
   const submit = async () => {
@@ -386,13 +422,25 @@ function AddSlotModal({
               </select>
             </label>
             <label>
-              Clinic Id (optional)
-              <input
-                placeholder="leave blank for telehealth"
+              Clinic (for in-clinic slots)
+              <select
                 value={form.clinicId}
                 onChange={onChange("clinicId")}
-              />
+                disabled={form.type !== "clinic" && form.type !== "home_visit"}
+              >
+                <option value="">-- No clinic / Telehealth --</option>
+                {clinicOptions.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <div style={{ fontSize: 11, color: "#7a8aa0", marginTop: 4 }}>
+                Required for in-clinic slots; leave as “No clinic” for
+                video/audio/chat.
+              </div>
             </label>
+
             <label>
               <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <input

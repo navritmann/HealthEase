@@ -9,6 +9,7 @@ import {
   IconButton,
   Divider,
 } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
@@ -42,21 +43,67 @@ export default function Footer() {
               </Typography>
 
               <Stack direction="row" spacing={1}>
-                {[TwitterIcon, FacebookIcon, InstagramIcon, GitHubIcon].map(
-                  (Icon, i) => (
-                    <IconButton
-                      key={i}
-                      size="small"
-                      sx={{
-                        bgcolor: "#EAF3F2",
-                        color: "#0aa07a",
-                        "&:hover": { bgcolor: "#DDEEEB" },
-                      }}
-                    >
-                      <Icon fontSize="small" />
-                    </IconButton>
-                  )
-                )}
+                {/* Social icons now link out */}
+                <IconButton
+                  size="small"
+                  component="a"
+                  href="https://twitter.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    bgcolor: "#EAF3F2",
+                    color: "#0aa07a",
+                    "&:hover": { bgcolor: "#DDEEEB" },
+                  }}
+                  aria-label="Twitter"
+                >
+                  <TwitterIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  component="a"
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    bgcolor: "#EAF3F2",
+                    color: "#0aa07a",
+                    "&:hover": { bgcolor: "#DDEEEB" },
+                  }}
+                  aria-label="Facebook"
+                >
+                  <FacebookIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  component="a"
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    bgcolor: "#EAF3F2",
+                    color: "#0aa07a",
+                    "&:hover": { bgcolor: "#DDEEEB" },
+                  }}
+                  aria-label="Instagram"
+                >
+                  <InstagramIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  component="a"
+                  href="https://github.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    bgcolor: "#EAF3F2",
+                    color: "#0aa07a",
+                    "&:hover": { bgcolor: "#DDEEEB" },
+                  }}
+                  aria-label="GitHub"
+                >
+                  <GitHubIcon fontSize="small" />
+                </IconButton>
               </Stack>
             </Stack>
           </Grid>
@@ -140,23 +187,102 @@ export default function Footer() {
 }
 
 function FooterLinks({ items = [] }) {
+  // decide how each label should behave
+  const resolveLink = (label) => {
+    switch (label) {
+      case "Home":
+        return { type: "router", to: "/" };
+      case "About Us":
+        return { type: "router", to: "/about" };
+      case "Services":
+        return { type: "anchor", href: "/#services" };
+      case "Doctors & Specialists":
+        return { type: "anchor", href: "/#doctors" };
+      case "FAQs":
+        // assuming you have /faq page
+        return { type: "router", to: "/faq" };
+      case "Contact Us":
+        return { type: "mailto", href: "mailto:info@healthease.com" };
+      case "Blog":
+        // no blog route yet → plain text
+        return { type: "text" };
+      default:
+        // for "Our Services" items etc → plain text
+        return { type: "text" };
+    }
+  };
+
   return (
     <Stack spacing={0.75}>
-      {items.map((t, i) => (
-        <MLink
-          key={i}
-          href="#"
-          underline="none"
-          color="inherit"
-          sx={{
-            color: "text.secondary",
-            fontSize: 14,
-            "&:hover": { color: "#0aa07a" },
-          }}
-        >
-          {t}
-        </MLink>
-      ))}
+      {items.map((t, i) => {
+        const cfg = resolveLink(t);
+
+        if (cfg.type === "router") {
+          return (
+            <MLink
+              key={i}
+              component={RouterLink}
+              to={cfg.to}
+              underline="none"
+              sx={{
+                color: "text.secondary",
+                fontSize: 14,
+                "&:hover": { color: "#0aa07a" },
+              }}
+            >
+              {t}
+            </MLink>
+          );
+        }
+
+        if (cfg.type === "anchor") {
+          return (
+            <MLink
+              key={i}
+              component="a"
+              href={cfg.href}
+              underline="none"
+              sx={{
+                color: "text.secondary",
+                fontSize: 14,
+                "&:hover": { color: "#0aa07a" },
+              }}
+            >
+              {t}
+            </MLink>
+          );
+        }
+
+        if (cfg.type === "mailto") {
+          return (
+            <MLink
+              key={i}
+              href={cfg.href}
+              underline="none"
+              sx={{
+                color: "text.secondary",
+                fontSize: 14,
+                "&:hover": { color: "#0aa07a" },
+              }}
+            >
+              {t}
+            </MLink>
+          );
+        }
+
+        // plain text fallback
+        return (
+          <Typography
+            key={i}
+            sx={{
+              color: "text.secondary",
+              fontSize: 14,
+            }}
+          >
+            {t}
+          </Typography>
+        );
+      })}
     </Stack>
   );
 }
