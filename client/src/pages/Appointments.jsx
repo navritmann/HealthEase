@@ -59,32 +59,6 @@ export default function Appointments() {
   const [errorDoctor, setErrorDoctor] = useState("");
   const [videoDetails, setVideoDetails] = useState(null);
 
-  /* ---------- block booking if not logged-in patient ---------- */
-  if (!isPatient) {
-    return (
-      <>
-        <Navbar />
-        <Container maxWidth="sm" sx={{ py: 10, textAlign: "center" }}>
-          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
-            Please sign in as a patient
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 3 }}>
-            You must be logged in with a patient account to book an appointment.
-          </Typography>
-          <Stack direction="row" spacing={1} justifyContent="center">
-            <Button variant="contained" onClick={() => navigate("/login")}>
-              Sign in
-            </Button>
-            <Button variant="outlined" onClick={() => navigate("/register")}>
-              Create account
-            </Button>
-          </Stack>
-        </Container>
-        <Footer />
-      </>
-    );
-  }
-
   /* ---------- FETCH DOCTOR ---------- */
   useEffect(() => {
     const fetchDoctor = async () => {
@@ -150,6 +124,24 @@ export default function Appointments() {
     };
     loadServices().catch(console.error);
   }, [doctorIdFromUrl]);
+
+  const handleSelectService = (svc) => {
+    setSelectedService(svc);
+    setSelectedAddOns([]);
+  };
+
+  useEffect(() => {
+    const payload = {
+      step,
+      s1,
+      s2,
+      selectedService,
+      selectedAddOns,
+      appointmentId,
+      bookingNo,
+    };
+    localStorage.setItem("he.booking", JSON.stringify(payload));
+  }, [step, s1, s2, selectedService, selectedAddOns, appointmentId, bookingNo]);
 
   /* ---------- STEP CONTROLS ---------- */
   const toggleAddOn = (code) =>
@@ -217,23 +209,31 @@ export default function Appointments() {
     );
   }
 
-  const handleSelectService = (svc) => {
-    setSelectedService(svc);
-    setSelectedAddOns([]);
-  };
-
-  useEffect(() => {
-    const payload = {
-      step,
-      s1,
-      s2,
-      selectedService,
-      selectedAddOns,
-      appointmentId,
-      bookingNo,
-    };
-    localStorage.setItem("he.booking", JSON.stringify(payload));
-  }, [step, s1, s2, selectedService, selectedAddOns, appointmentId, bookingNo]);
+  /* ---------- block booking if not logged-in patient (AFTER hooks) ---------- */
+  if (!isPatient) {
+    return (
+      <>
+        <Navbar />
+        <Container maxWidth="sm" sx={{ py: 10, textAlign: "center" }}>
+          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
+            Please sign in as a patient
+          </Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
+            You must be logged in with a patient account to book an appointment.
+          </Typography>
+          <Stack direction="row" spacing={1} justifyContent="center">
+            <Button variant="contained" onClick={() => navigate("/login")}>
+              Sign in
+            </Button>
+            <Button variant="outlined" onClick={() => navigate("/register")}>
+              Create account
+            </Button>
+          </Stack>
+        </Container>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -335,7 +335,7 @@ export default function Appointments() {
               addOns={selectedAddOns || []}
               appointmentType={s1?.appointmentType || "clinic"}
               patientDraft={s3}
-              patientId={patientId} // <-- pass it
+              patientId={patientId}
               onBack={goBack}
               onPay={(confirmed) => {
                 if (confirmed?.bookingNo) setBookingNo(confirmed.bookingNo);
