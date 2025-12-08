@@ -1,3 +1,4 @@
+// src/components/Footer.jsx
 import React from "react";
 import {
   Box,
@@ -19,7 +20,11 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <Box sx={{ bgcolor: "#F7FAFB", borderTop: "1px solid #E6EDF0" }}>
+    <Box
+      component="footer"
+      role="contentinfo"
+      sx={{ bgcolor: "#F7FAFB", borderTop: "1px solid #E6EDF0" }}
+    >
       <Container maxWidth="lg" sx={{ py: { xs: 5, md: 7 } }}>
         <Grid container spacing={{ xs: 4, md: 6 }}>
           {/* Brand + about */}
@@ -29,9 +34,15 @@ export default function Footer() {
                 <Box
                   component="img"
                   src="/images/logo.png"
-                  alt="HealthEase"
-                  sx={{ width: 90, height: 36 }}
+                  alt=""
+                  role="presentation"
+                  sx={{ width: 90, height: 36, objectFit: "contain" }}
                 />
+                <Typography
+                  sx={{ fontWeight: 800, color: "#047857", fontSize: 18 }}
+                >
+                  Health<span style={{ color: "#111" }}>Ease</span>
+                </Typography>
               </Stack>
               <Typography
                 sx={{ color: "text.secondary", fontSize: 14, maxWidth: 420 }}
@@ -43,7 +54,7 @@ export default function Footer() {
               </Typography>
 
               <Stack direction="row" spacing={1}>
-                {/* Social icons now link out */}
+                {/* Social icons with good contrast */}
                 <IconButton
                   size="small"
                   component="a"
@@ -52,7 +63,7 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   sx={{
                     bgcolor: "#EAF3F2",
-                    color: "#0aa07a",
+                    color: "#047857",
                     "&:hover": { bgcolor: "#DDEEEB" },
                   }}
                   aria-label="Twitter"
@@ -67,7 +78,7 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   sx={{
                     bgcolor: "#EAF3F2",
-                    color: "#0aa07a",
+                    color: "#047857",
                     "&:hover": { bgcolor: "#DDEEEB" },
                   }}
                   aria-label="Facebook"
@@ -82,7 +93,7 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   sx={{
                     bgcolor: "#EAF3F2",
-                    color: "#0aa07a",
+                    color: "#047857",
                     "&:hover": { bgcolor: "#DDEEEB" },
                   }}
                   aria-label="Instagram"
@@ -97,7 +108,7 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   sx={{
                     bgcolor: "#EAF3F2",
-                    color: "#0aa07a",
+                    color: "#047857",
                     "&:hover": { bgcolor: "#DDEEEB" },
                   }}
                   aria-label="GitHub"
@@ -110,7 +121,11 @@ export default function Footer() {
 
           {/* Quick Links */}
           <Grid item xs={12} sm={6} md={2.5}>
-            <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+            <Typography
+              component="h2"
+              variant="subtitle1"
+              sx={{ fontWeight: 700, mb: 1.5 }}
+            >
               Quick Links
             </Typography>
             <FooterLinks
@@ -128,7 +143,11 @@ export default function Footer() {
 
           {/* Our Services */}
           <Grid item xs={12} sm={6} md={2.5}>
-            <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+            <Typography
+              component="h2"
+              variant="subtitle1"
+              sx={{ fontWeight: 700, mb: 1.5 }}
+            >
               Our Services
             </Typography>
             <FooterLinks
@@ -145,7 +164,11 @@ export default function Footer() {
 
           {/* Contact */}
           <Grid item xs={12} md={3}>
-            <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+            <Typography
+              component="h2"
+              variant="subtitle1"
+              sx={{ fontWeight: 700, mb: 1.5 }}
+            >
               Contact Us
             </Typography>
             <Typography sx={{ color: "text.secondary", fontSize: 14, mb: 1 }}>
@@ -187,7 +210,6 @@ export default function Footer() {
 }
 
 function FooterLinks({ items = [] }) {
-  // decide how each label should behave
   const resolveLink = (label) => {
     switch (label) {
       case "Home":
@@ -199,15 +221,12 @@ function FooterLinks({ items = [] }) {
       case "Doctors & Specialists":
         return { type: "anchor", href: "/#doctors" };
       case "FAQs":
-        // assuming you have /faq page
         return { type: "router", to: "/faq" };
       case "Contact Us":
         return { type: "mailto", href: "mailto:info@healthease.com" };
       case "Blog":
-        // no blog route yet → plain text
         return { type: "text" };
       default:
-        // for "Our Services" items etc → plain text
         return { type: "text" };
     }
   };
@@ -227,7 +246,7 @@ function FooterLinks({ items = [] }) {
               sx={{
                 color: "text.secondary",
                 fontSize: 14,
-                "&:hover": { color: "#0aa07a" },
+                "&:hover": { color: "#047857" },
               }}
             >
               {t}
@@ -245,7 +264,7 @@ function FooterLinks({ items = [] }) {
               sx={{
                 color: "text.secondary",
                 fontSize: 14,
-                "&:hover": { color: "#0aa07a" },
+                "&:hover": { color: "#047857" },
               }}
             >
               {t}
@@ -262,7 +281,7 @@ function FooterLinks({ items = [] }) {
               sx={{
                 color: "text.secondary",
                 fontSize: 14,
-                "&:hover": { color: "#0aa07a" },
+                "&:hover": { color: "#047857" },
               }}
             >
               {t}
@@ -270,7 +289,6 @@ function FooterLinks({ items = [] }) {
           );
         }
 
-        // plain text fallback
         return (
           <Typography
             key={i}

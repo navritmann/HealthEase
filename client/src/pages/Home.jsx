@@ -26,31 +26,30 @@ import Footer from "../components/Footer";
 const SLIDE_INTERVAL_MS = 5500;
 const SLIDES = [
   "/images/home-hero.png",
-  "/images/home-hero.png",
-  "/images/home-hero.png",
-  // use your actual filenames; keeping three distinct images is ideal
+  "/images/home-banner.jpg",
+  "/images/home-banner-1.jpg",
 ];
 
 const SOLUTIONS = [
   {
     title: "Patient-Centered Approach",
     desc: "Your health and well-being are at the center of our care. We work closely with you to understand your needs.",
-    icon: "/images/section3-1.png", // <-- change to your file
+    icon: "/images/section3-1.png",
   },
   {
     title: "Tailored Treatment Plans",
     desc: "We create customized plans based on comprehensive assessments and consultations.",
-    icon: "/images/section3-2.png", // <-- change to your file
+    icon: "/images/section3-2.png",
   },
   {
     title: "Comprehensive Follow-Up",
     desc: "We offer ongoing evaluations and support to adapt and refine your care plan as needs evolve.",
-    icon: "/images/section3-3.png", // <-- change to your file
+    icon: "/images/section3-3.png",
   },
   {
     title: "State-of-the-Art Methods",
     desc: "Utilizing cutting-edge medical technology and treatments to ensure your care is modern and effective.",
-    icon: "/images/section3-4.png", // <-- change to your file
+    icon: "/images/section3-4.png",
   },
 ];
 
@@ -104,7 +103,7 @@ export default function Home() {
   const rootRef = useRef(null);
   const touchRef = useRef({ x: 0, y: 0, moved: false });
 
-  const [expanded, setExpanded] = useState(false); // or "panel1" to open first by default
+  const [expanded, setExpanded] = useState(false);
   const handleChange = (panel) => (_e, isExpanded) =>
     setExpanded(isExpanded ? panel : false);
 
@@ -208,7 +207,6 @@ export default function Home() {
             )}
           </Box>
         </Box>
-        {/* thin divider like the mock */}
         <Box sx={{ height: 1, bgcolor: "#E6E8EB" }} />
       </Box>
     );
@@ -233,13 +231,12 @@ export default function Home() {
       alert("Call ended (demo).");
       return;
     }
-    // mic / video / screen – demo feedback
     alert(`${alt} clicked (demo control).`);
   };
 
   return (
     <>
-      <Navbar /> {/* fixed centered pill on top */}
+      <Navbar />
       {/* Hero / Slider */}
       <Box
         ref={rootRef}
@@ -255,7 +252,7 @@ export default function Home() {
           position: "relative",
           height: { xs: "88vh", md: "92vh" },
           overflow: "hidden",
-          bgcolor: "transparent", // <-- no dark background
+          bgcolor: "transparent",
         }}
       >
         {/* Slides */}
@@ -302,6 +299,7 @@ export default function Home() {
                 <Box sx={{ maxWidth: { xs: "100%", md: 640 }, color: "white" }}>
                   <Typography
                     variant="h2"
+                    component="h1" // semantic h1 for accessibility
                     sx={{
                       fontSize: { xs: 36, md: 64 },
                       fontWeight: 800,
@@ -344,14 +342,14 @@ export default function Home() {
                     endIcon={<ArrowForwardRoundedIcon />}
                     sx={{
                       ml: 2,
-                      backgroundColor: "#0aa07a",
+                      backgroundColor: "#047857", // darker green for contrast
                       color: "#fff",
                       borderRadius: 999,
                       px: 3,
                       py: 1.2,
                       textTransform: "none",
                       fontWeight: 700,
-                      "&:hover": { backgroundColor: "#088a69" },
+                      "&:hover": { backgroundColor: "#03614a" },
                     }}
                   >
                     Book Appointment
@@ -364,7 +362,7 @@ export default function Home() {
 
         {/* Arrows */}
         <Button
-          aria-label="Previous"
+          aria-label="Previous slide"
           onClick={prev}
           sx={{
             position: "absolute",
@@ -374,7 +372,8 @@ export default function Home() {
             minWidth: 0,
             p: 1,
             borderRadius: "50%",
-            bgcolor: "rgba(255,255,255,0.85)",
+            bgcolor: "rgba(255,255,255,0.9)",
+            color: "#111", // dark icon for contrast
             "&:hover": { bgcolor: "rgba(255,255,255,1)" },
             zIndex: 1,
           }}
@@ -382,7 +381,7 @@ export default function Home() {
           <ChevronLeftRoundedIcon />
         </Button>
         <Button
-          aria-label="Next"
+          aria-label="Next slide"
           onClick={next}
           sx={{
             position: "absolute",
@@ -392,7 +391,8 @@ export default function Home() {
             minWidth: 0,
             p: 1,
             borderRadius: "50%",
-            bgcolor: "rgba(255,255,255,0.85)",
+            bgcolor: "rgba(255,255,255,0.9)",
+            color: "#111",
             "&:hover": { bgcolor: "rgba(255,255,255,1)" },
             zIndex: 1,
           }}
@@ -415,6 +415,9 @@ export default function Home() {
               key={i}
               onClick={() => goto(i)}
               label=""
+              aria-label={`Go to slide ${i + 1}`}
+              aria-pressed={i === index}
+              role="button"
               size="small"
               sx={{
                 width: 36,
@@ -422,15 +425,15 @@ export default function Home() {
                 borderRadius: 3,
                 bgcolor:
                   i === index
-                    ? "rgba(255,255,255,0.8)"
-                    : "rgba(255,255,255,0.35)",
+                    ? "rgba(255,255,255,0.9)"
+                    : "rgba(255,255,255,0.45)",
                 cursor: "pointer",
               }}
             />
           ))}
         </Stack>
       </Box>
-      {/* Anchors for nav links (fill later with real sections) */}
+
       {/* ===== Section 2: About / Features ===== */}
       <Box id="about" sx={{ bgcolor: "#fff" }}>
         <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
@@ -456,7 +459,12 @@ export default function Home() {
 
             {/* Right text + CTA + avatars */}
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h4" fontWeight={800} sx={{ mb: 1 }}>
+              <Typography
+                variant="h4"
+                component="h2"
+                fontWeight={800}
+                sx={{ mb: 1 }}
+              >
                 Dedicated to Excellence in
                 <br /> Healthcare
               </Typography>
@@ -479,8 +487,8 @@ export default function Home() {
                     borderRadius: 999,
                     textTransform: "none",
                     fontWeight: 700,
-                    bgcolor: "#0aa07a",
-                    "&:hover": { bgcolor: "#088a69" },
+                    bgcolor: "#047857",
+                    "&:hover": { bgcolor: "#03614a" },
                   }}
                 >
                   Join Now
@@ -544,7 +552,12 @@ export default function Home() {
           >
             {/* Left column */}
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h5" fontWeight={800} sx={{ mb: 1 }}>
+              <Typography
+                variant="h5"
+                component="h3"
+                fontWeight={800}
+                sx={{ mb: 1 }}
+              >
                 The Faces Behind
                 <br /> Your Health
               </Typography>
@@ -574,7 +587,7 @@ export default function Home() {
                 </Typography>
               </Stack>
 
-              {/* four mini photos */}
+              {/* three mini photos */}
               <Stack direction="row" spacing={1.5} sx={{ mt: 1 }}>
                 {[
                   "about-strip-1.png",
@@ -629,7 +642,7 @@ export default function Home() {
                       </Typography>
                     </Box>
                     <Button
-                      aria-label="open"
+                      aria-label="View our doctors"
                       onClick={() =>
                         document
                           .getElementById("doctors")
@@ -733,7 +746,7 @@ export default function Home() {
                       </Typography>
                     </Box>
                     <Button
-                      aria-label="open"
+                      aria-label="View our services"
                       onClick={() =>
                         document
                           .getElementById("services")
@@ -756,6 +769,7 @@ export default function Home() {
           </Stack>
         </Container>
       </Box>
+
       {/* ===== Section 3: Personalized Medical Solutions ===== */}
       <Box id="services" sx={{ bgcolor: "#157F79" }}>
         <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
@@ -768,6 +782,7 @@ export default function Home() {
             <Box sx={{ flex: 1 }}>
               <Typography
                 variant="h4"
+                component="h2"
                 sx={{ color: "#F6FFFD", fontWeight: 800, lineHeight: 1.2 }}
               >
                 Personalized Medical
@@ -784,9 +799,9 @@ export default function Home() {
             </Box>
           </Stack>
 
-          {/* 2 x 2 cards (now using your PNG icons) */}
+          {/* 2 x 2 cards */}
           <Grid container spacing={3}>
-            {SOLUTIONS.map((item, idx) => (
+            {SOLUTIONS.map((item) => (
               <Grid key={item.title} item xs={12} md={6}>
                 <Box
                   sx={{
@@ -806,7 +821,6 @@ export default function Home() {
                       </Typography>
                     </Box>
 
-                    {/* PNG icon on the right */}
                     <Box
                       sx={{
                         width: 44,
@@ -827,7 +841,6 @@ export default function Home() {
                           height: 24,
                           objectFit: "contain",
                           display: "block",
-                          filter: "none", // keep original colors
                         }}
                       />
                     </Box>
@@ -838,6 +851,8 @@ export default function Home() {
           </Grid>
         </Container>
       </Box>
+
+      {/* ===== Section 4: Virtual Consultations ===== */}
       <Box sx={{ bgcolor: "#fff" }}>
         <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
           <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
@@ -845,6 +860,7 @@ export default function Home() {
             <Grid item xs={12} md={4}>
               <Typography
                 variant="h4"
+                component="h2"
                 sx={{ fontWeight: 800, lineHeight: 1.2, mb: 4 }}
               >
                 Details for Virtual
@@ -861,17 +877,21 @@ export default function Home() {
                   borderRadius: 999,
                   textTransform: "none",
                   fontWeight: 700,
-                  bgcolor: "#0aa07a",
-                  "&:hover": { bgcolor: "#088a69" },
+                  bgcolor: "#047857",
+                  "&:hover": { bgcolor: "#03614a" },
                 }}
               >
                 Join Now
               </Button>
             </Grid>
 
-            {/* Middle: Accordion list */}
+            {/* Middle: Accordions */}
             <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+              <Typography
+                variant="h6"
+                component="h3"
+                sx={{ fontWeight: 700, mb: 2 }}
+              >
                 Ongoing Support and
                 <br /> Follow-Up Care
               </Typography>
@@ -881,7 +901,7 @@ export default function Home() {
                 elevation={0}
                 expanded={expanded === "panel1"}
                 onChange={handleChange("panel1")}
-                TransitionProps={{ unmountOnExit: true }} // keeps height tight
+                TransitionProps={{ unmountOnExit: true }}
                 sx={{ borderRadius: 2, mb: 1, border: "1px solid #eee" }}
               >
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -963,7 +983,7 @@ export default function Home() {
             <Grid item xs={12} md={4}>
               <Box
                 sx={{
-                  position: "relative", // ✅ makes the overlay position relative
+                  position: "relative",
                   width: "100%",
                   borderRadius: 4,
                   overflow: "hidden",
@@ -1002,6 +1022,8 @@ export default function Home() {
                     <Box
                       key={c.key}
                       aria-label={c.alt}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleControlClick(c.key, c.alt)}
                       sx={{
                         width: 32,
@@ -1037,11 +1059,13 @@ export default function Home() {
           </Grid>
         </Container>
       </Box>
-      {/* ===== Section 5: Progress Tracking (YouTube iframe) ===== */}
+
+      {/* ===== Section 5: Progress Tracking ===== */}
       <Box id="progress" sx={{ bgcolor: "#fff" }}>
         <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
           <Typography
             variant="h5"
+            component="h2"
             align="center"
             sx={{ fontWeight: 700, mb: 3, color: "text.primary" }}
           >
@@ -1058,7 +1082,6 @@ export default function Home() {
               mx: "auto",
             }}
           >
-            {/* Responsive 16:9 container */}
             <Box sx={{ position: "relative", width: "100%", pt: "56.25%" }}>
               <Box
                 component="iframe"
@@ -1080,6 +1103,7 @@ export default function Home() {
           </Box>
         </Container>
       </Box>
+
       {/* ===== Section 6: Compassion + Expertise ===== */}
       <Box id="compassion" sx={{ bgcolor: "#fff" }}>
         <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
@@ -1088,6 +1112,7 @@ export default function Home() {
             <Grid item xs={12} md={6}>
               <Typography
                 variant="h4"
+                component="h2"
                 sx={{
                   fontWeight: 800,
                   lineHeight: 1.25,
@@ -1117,8 +1142,8 @@ export default function Home() {
                   borderRadius: 999,
                   textTransform: "none",
                   fontWeight: 700,
-                  bgcolor: "#0aa07a",
-                  "&:hover": { bgcolor: "#088a69" },
+                  bgcolor: "#047857",
+                  "&:hover": { bgcolor: "#03614a" },
                 }}
               >
                 Join Now
@@ -1143,11 +1168,13 @@ export default function Home() {
           </Grid>
         </Container>
       </Box>
+
       {/* ===== Section 7: Doctors grid ===== */}
       <Box id="doctors" sx={{ bgcolor: "#EAF7F5" }}>
         <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
           <Typography
             align="center"
+            component="h2"
             sx={{
               fontSize: { xs: 24, md: 32 },
               fontWeight: 800,
@@ -1195,7 +1222,7 @@ export default function Home() {
                   {/* teal footer bar */}
                   <Box
                     sx={{
-                      bgcolor: "#0aa07a",
+                      bgcolor: "#047857",
                       color: "#fff",
                       borderRadius: 2,
                       px: 2,
@@ -1214,26 +1241,7 @@ export default function Home() {
                       </Typography>
                     </Box>
 
-                    {/* <Button
-                      size="small"
-                      variant="contained"
-                      onClick={() =>
-                        goBookDr(d._id || "demo-doctor-id", "clinic")
-                      }
-                      sx={{
-                        textTransform: "none",
-                        fontWeight: 700,
-                        borderRadius: 999,
-                        bgcolor: "rgba(255,255,255,0.95)",
-                        color: "#0aa07a",
-                        "&:hover": { bgcolor: "#fff" },
-                        px: 1.8,
-                        py: 0.6,
-                        minWidth: 0,
-                      }}
-                    >
-                      Book
-                    </Button> */}
+                    {/* booking button intentionally commented out for now */}
                   </Box>
                 </Box>
               </Grid>
@@ -1251,11 +1259,6 @@ export default function Home() {
               variant="contained"
               onClick={() => navigate("/doctors")}
               endIcon={<ArrowForwardRoundedIcon />}
-              // onClick={() =>
-              //   document
-              //     .getElementById("doctors")
-              //     ?.scrollIntoView({ behavior: "smooth" })
-              // }
               sx={{
                 borderRadius: 999,
                 px: 2.8,
@@ -1271,6 +1274,7 @@ export default function Home() {
           </Box>
         </Container>
       </Box>
+
       {/* ===== Section 8: FAQ ===== */}
       <Box id="faq" sx={{ bgcolor: "#fff" }}>
         <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
@@ -1294,6 +1298,7 @@ export default function Home() {
             {/* Right: Heading + Accordions */}
             <Grid item xs={12} md={7}>
               <Typography
+                component="h2"
                 sx={{
                   fontWeight: 800,
                   fontSize: { xs: 28, md: 40 },
@@ -1306,7 +1311,6 @@ export default function Home() {
                 <br /> Answers
               </Typography>
 
-              {/* controlled single-open accordions */}
               {[
                 {
                   id: "a1",

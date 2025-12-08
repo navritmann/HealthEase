@@ -10,7 +10,6 @@ import {
   Typography,
   Link as MLink,
   Paper,
-  Divider,
   CircularProgress,
 } from "@mui/material";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
@@ -47,209 +46,225 @@ export default function Services() {
     <>
       <Navbar />
 
-      {/* ===== Hero Section ===== */}
-      <Box
-        sx={{
-          position: "relative",
-          height: { xs: 360, md: 460 },
-          backgroundImage: `url(/images/services-hero.jpg)`,
-          backgroundPosition: "center",
-          backgroundSize: "cover",
-        }}
-      >
+      {/* MAIN CONTENT AREA FOR ACCESSIBILITY */}
+      <Box component="main" role="main">
+        {/* ===== Hero Section ===== */}
         <Box
           sx={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.35) 100%)",
-          }}
-        />
-        <Container
-          maxWidth="lg"
-          sx={{
             position: "relative",
-            zIndex: 1,
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
+            height: { xs: 360, md: 460 },
+            backgroundImage: `url(/images/services-hero.jpg)`,
+            backgroundPosition: "center",
+            backgroundSize: "cover",
           }}
         >
-          <Stack spacing={2} sx={{ color: "#fff" }}>
-            <Breadcrumbs
-              aria-label="breadcrumb"
-              sx={{
-                "& a, & p": { color: "rgba(255,255,255,.85)", fontSize: 13 },
-                mb: { xs: 0.5, md: 1 },
-              }}
-            >
-              <MLink
-                component={RouterLink}
-                underline="hover"
-                color="inherit"
-                to="/"
-              >
-                Home
-              </MLink>
-              <Typography component="span" sx={{ opacity: 0.9, fontSize: 13 }}>
-                Services
-              </Typography>
-            </Breadcrumbs>
-
-            <Typography
-              variant="h2"
-              sx={{
-                fontWeight: 800,
-                lineHeight: 1.1,
-                fontSize: { xs: 32, md: 56 },
-                textShadow: "0 2px 16px rgba(0,0,0,.35)",
-              }}
-            >
-              Our <span style={{ fontStyle: "italic" }}>Medical</span> Services
-            </Typography>
-
-            <Typography
-              sx={{
-                maxWidth: 720,
-                color: "rgba(255,255,255,.92)",
-                fontSize: { xs: 14, md: 16 },
-              }}
-            >
-              Discover specialized care designed around you — from diagnostics
-              to expert consultations.
-            </Typography>
-          </Stack>
-        </Container>
-      </Box>
-
-      {/* ===== Services Grid ===== */}
-      <Box sx={{ bgcolor: "#f8fafa" }}>
-        <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
-          <Typography
-            align="center"
+          <Box
             sx={{
-              fontWeight: 800,
-              fontSize: { xs: 24, md: 30 },
-              color: "#1d2b3a",
-              mb: { xs: 3, md: 5 },
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.35) 100%)",
+            }}
+          />
+          <Container
+            maxWidth="lg"
+            sx={{
+              position: "relative",
+              zIndex: 1,
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
             }}
           >
-            Explore Our Services
-          </Typography>
+            <Stack spacing={2} sx={{ color: "#fff" }}>
+              <Breadcrumbs
+                aria-label="breadcrumb"
+                sx={{
+                  "& a, & p": { color: "rgba(255,255,255,.85)", fontSize: 13 },
+                  mb: { xs: 0.5, md: 1 },
+                }}
+              >
+                <MLink
+                  component={RouterLink}
+                  underline="hover"
+                  color="inherit"
+                  to="/"
+                >
+                  Home
+                </MLink>
+                <Typography
+                  component="span"
+                  sx={{ opacity: 0.9, fontSize: 13 }}
+                >
+                  Services
+                </Typography>
+              </Breadcrumbs>
 
-          {loading ? (
-            <Stack alignItems="center" py={5}>
-              <CircularProgress />
+              {/* Make this the H1 for the page */}
+              <Typography
+                component="h1"
+                variant="h2"
+                sx={{
+                  fontWeight: 800,
+                  lineHeight: 1.1,
+                  fontSize: { xs: 32, md: 56 },
+                  textShadow: "0 2px 16px rgba(0,0,0,.35)",
+                }}
+              >
+                Our <span style={{ fontStyle: "italic" }}>Medical</span>{" "}
+                Services
+              </Typography>
+
+              <Typography
+                sx={{
+                  maxWidth: 720,
+                  color: "rgba(255,255,255,.92)",
+                  fontSize: { xs: 14, md: 16 },
+                }}
+              >
+                Discover specialized care designed around you — from diagnostics
+                to expert consultations.
+              </Typography>
             </Stack>
-          ) : services.length === 0 ? (
-            <Typography align="center" color="text.secondary">
-              No active services found.
+          </Container>
+        </Box>
+
+        {/* ===== Services Grid ===== */}
+        <Box sx={{ bgcolor: "#f8fafa" }}>
+          <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
+            {/* Section heading as proper H2 */}
+            <Typography
+              component="h2"
+              variant="h4"
+              align="center"
+              sx={{
+                fontWeight: 800,
+                fontSize: { xs: 24, md: 30 },
+                color: "#102A43",
+                mb: { xs: 3, md: 5 },
+              }}
+            >
+              Explore Our Services
             </Typography>
-          ) : (
-            <Grid container spacing={{ xs: 3, md: 4 }}>
-              {services.map((svc) => (
-                <Grid key={svc._id} item xs={12} sm={6} md={4}>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 2.5,
-                      borderRadius: 3,
-                      border: "1px solid #E4EBEF",
-                      boxShadow: "0 6px 22px rgba(16,24,40,.06)",
-                      height: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      transition: "all .3s",
-                      "&:hover": {
-                        transform: "translateY(-4px)",
-                        boxShadow: "0 12px 32px rgba(16,24,40,.12)",
-                      },
-                    }}
-                  >
-                    <Typography
-                      variant="h6"
-                      sx={{ fontWeight: 700, mb: 1, color: "#0a3e57" }}
-                    >
-                      {svc.name}
-                    </Typography>
 
-                    <Typography
-                      sx={{ color: "text.secondary", fontSize: 14, mb: 2 }}
+            {loading ? (
+              <Stack alignItems="center" py={5}>
+                <CircularProgress />
+              </Stack>
+            ) : services.length === 0 ? (
+              <Typography align="center" color="text.secondary">
+                No active services found.
+              </Typography>
+            ) : (
+              <Grid container spacing={{ xs: 3, md: 4 }}>
+                {services.map((svc) => (
+                  <Grid key={svc._id} item xs={12} sm={6} md={4}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 3,
+                        border: "1px solid #E4EBEF",
+                        boxShadow: "0 6px 22px rgba(16,24,40,.06)",
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        transition: "all .3s",
+                        "&:hover": {
+                          transform: "translateY(-4px)",
+                          boxShadow: "0 12px 32px rgba(16,24,40,.12)",
+                        },
+                      }}
                     >
-                      {svc.description || "No description available."}
-                    </Typography>
-
-                    {/* If you want to show Add-ons */}
-                    {svc.addOns?.length > 0 && (
-                      <Box sx={{ mb: 2 }}>
-                        <Typography
-                          sx={{
-                            fontWeight: 600,
-                            color: "#0aa07a",
-                            fontSize: 13,
-                            mb: 0.5,
-                          }}
-                        >
-                          Add-ons:
-                        </Typography>
-                        <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
-                          {svc.addOns.map((a) => (
-                            <li
-                              key={a.code}
-                              style={{
-                                color: "#555",
-                                fontSize: 13,
-                                marginBottom: 2,
-                              }}
-                            >
-                              {a.name} (${a.price})
-                            </li>
-                          ))}
-                        </ul>
-                      </Box>
-                    )}
-
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      alignItems="center"
-                      sx={{ mt: "auto" }}
-                    >
-                      <Typography sx={{ fontWeight: 700, color: "#0aa07a" }}>
-                        ${svc.basePrice}
-                      </Typography>
+                      {/* Card title as H3 to keep heading order clean */}
                       <Typography
-                        sx={{ fontSize: 13, color: "text.secondary" }}
+                        component="h3"
+                        variant="h6"
+                        sx={{ fontWeight: 700, mb: 1, color: "#123055" }}
                       >
-                        {svc.durationMins} mins
+                        {svc.name}
                       </Typography>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        endIcon={<ArrowForwardRoundedIcon />}
-                        sx={{
-                          borderRadius: 999,
-                          textTransform: "none",
-                          fontWeight: 700,
-                          bgcolor: "#0aa07a",
-                          "&:hover": { bgcolor: "#088a69" },
-                        }}
-                        onClick={() =>
-                          navigate(`/appointments?service=${svc.code}`)
-                        }
+
+                      <Typography
+                        sx={{ color: "text.secondary", fontSize: 14, mb: 2 }}
                       >
-                        Book
-                      </Button>
-                    </Stack>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </Container>
+                        {svc.description || "No description available."}
+                      </Typography>
+
+                      {svc.addOns?.length > 0 && (
+                        <Box sx={{ mb: 2 }}>
+                          <Typography
+                            sx={{
+                              fontWeight: 600,
+                              color: "#0B735D",
+                              fontSize: 13,
+                              mb: 0.5,
+                            }}
+                          >
+                            Add-ons:
+                          </Typography>
+                          <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
+                            {svc.addOns.map((a) => (
+                              <li
+                                key={a.code}
+                                style={{
+                                  color: "#4B5563",
+                                  fontSize: 13,
+                                  marginBottom: 2,
+                                }}
+                              >
+                                {a.name} (${a.price})
+                              </li>
+                            ))}
+                          </ul>
+                        </Box>
+                      )}
+
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        sx={{ mt: "auto", gap: 1 }}
+                      >
+                        {/* Darker green for better contrast */}
+                        <Typography sx={{ fontWeight: 700, color: "#03543F" }}>
+                          ${svc.basePrice}
+                        </Typography>
+                        <Typography
+                          sx={{ fontSize: 13, color: "text.secondary" }}
+                        >
+                          {svc.durationMins} mins
+                        </Typography>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          endIcon={<ArrowForwardRoundedIcon />}
+                          sx={{
+                            borderRadius: 999,
+                            textTransform: "none",
+                            fontWeight: 700,
+                            bgcolor: "#047857",
+                            "&:hover": { bgcolor: "#065F46" },
+                          }}
+                          aria-label={`Book ${svc.name} service`}
+                          onClick={() =>
+                            navigate(`/appointments?service=${svc.code}`)
+                          }
+                        >
+                          Book
+                        </Button>
+                      </Stack>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </Container>
+        </Box>
       </Box>
 
+      {/* ===== Page footer ===== */}
       <Box sx={{ bgcolor: "#fff", borderTop: "1px solid #E9EEF3" }}>
         <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
           <Grid container spacing={{ xs: 4, md: 6 }}>
@@ -257,10 +272,12 @@ export default function Services() {
             <Grid item xs={12} md={4}>
               <Stack spacing={1.5}>
                 <Stack direction="row" spacing={1.25} alignItems="center">
+                  {/* Decorative logo: empty alt to avoid redundant alt text */}
                   <Box
                     component="img"
                     src="/images/logo.png"
-                    alt="HealthEase"
+                    alt=""
+                    role="presentation"
                     sx={{
                       width: 36,
                       height: 36,
@@ -268,7 +285,7 @@ export default function Services() {
                       borderRadius: 1,
                     }}
                   />
-                  <Typography sx={{ fontWeight: 800, color: "#0aa07a" }}>
+                  <Typography sx={{ fontWeight: 800, color: "#047857" }}>
                     Health<span style={{ color: "#111" }}>Ease</span>
                   </Typography>
                 </Stack>
@@ -281,22 +298,22 @@ export default function Services() {
                 <Stack direction="row" spacing={1.5} sx={{ mt: 0.5 }}>
                   <MLink
                     href="#"
-                    sx={{ color: "#0a3e57" }}
-                    aria-label="Twitter"
+                    sx={{ color: "#102A43" }}
+                    aria-label="Visit HealthEase on Twitter"
                   >
                     <TwitterIcon fontSize="small" />
                   </MLink>
                   <MLink
                     href="#"
-                    sx={{ color: "#0a3e57" }}
-                    aria-label="Facebook"
+                    sx={{ color: "#102A43" }}
+                    aria-label="Visit HealthEase on Facebook"
                   >
                     <FacebookIcon fontSize="small" />
                   </MLink>
                   <MLink
                     href="#"
-                    sx={{ color: "#0a3e57" }}
-                    aria-label="Instagram"
+                    sx={{ color: "#102A43" }}
+                    aria-label="Visit HealthEase on Instagram"
                   >
                     <InstagramIcon fontSize="small" />
                   </MLink>
@@ -306,7 +323,11 @@ export default function Services() {
 
             {/* Col 2: Quick Links */}
             <Grid item xs={12} sm={6} md={2.5}>
-              <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+              <Typography
+                component="h2"
+                variant="subtitle1"
+                sx={{ fontWeight: 700, mb: 1.5 }}
+              >
                 Quick Links
               </Typography>
               <Stack spacing={1}>
@@ -327,7 +348,7 @@ export default function Services() {
                     sx={{
                       color: "text.secondary",
                       fontSize: 14,
-                      "&:hover": { color: "#0aa07a" },
+                      "&:hover": { color: "#047857" },
                     }}
                   >
                     {l.label}
@@ -338,7 +359,11 @@ export default function Services() {
 
             {/* Col 3: Our Services */}
             <Grid item xs={12} sm={6} md={2.5}>
-              <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+              <Typography
+                component="h2"
+                variant="subtitle1"
+                sx={{ fontWeight: 700, mb: 1.5 }}
+              >
                 Our Services
               </Typography>
               <Stack spacing={1}>
@@ -362,7 +387,11 @@ export default function Services() {
 
             {/* Col 4: Contact Us */}
             <Grid item xs={12} md={3}>
-              <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+              <Typography
+                component="h2"
+                variant="subtitle1"
+                sx={{ fontWeight: 700, mb: 1.5 }}
+              >
                 Contact Us
               </Typography>
               <Stack spacing={1}>

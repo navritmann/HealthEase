@@ -28,6 +28,17 @@ export default function About() {
   const [faqOpen, setFaqOpen] = React.useState("a1");
   const handleFaq = (id) => (_e, expanded) => setFaqOpen(expanded ? id : false);
 
+  // Quick links (Contact goes to email instead of missing /contact route)
+  const quickLinks = [
+    { label: "Home", to: "/" },
+    { label: "About Us", to: "/about" },
+    { label: "Services", to: "/#services" },
+    { label: "Doctors & Specialists", to: "/#doctors" },
+    { label: "FAQs", to: "/#faq" },
+    { label: "Blog", to: "#" },
+    { label: "Contact Us", href: "mailto:info@healthease.com" },
+  ];
+
   return (
     <>
       <Navbar />
@@ -116,8 +127,9 @@ export default function About() {
                   borderRadius: 999,
                   px: 2.6,
                   py: 1.1,
-                  bgcolor: "#0aa07a",
-                  "&:hover": { bgcolor: "#088a69" },
+                  // darker teal for better contrast with white text
+                  bgcolor: "#047857",
+                  "&:hover": { bgcolor: "#036149" },
                 }}
                 onClick={() => navigate("/register")}
               >
@@ -132,9 +144,9 @@ export default function About() {
                   borderRadius: 999,
                   px: 2.2,
                   py: 1.05,
-                  bgcolor: "rgba(255,255,255,0.92)",
+                  bgcolor: "rgba(255,255,255,0.95)",
                   color: "#0a3e57",
-                  "&:hover": { bgcolor: "#fff" },
+                  "&:hover": { bgcolor: "#ffffff" },
                 }}
                 onClick={() => navigate("/appointments")}
               >
@@ -219,8 +231,8 @@ export default function About() {
                       borderRadius: 999,
                       textTransform: "none",
                       fontWeight: 700,
-                      bgcolor: "#0aa07a",
-                      "&:hover": { bgcolor: "#088a69" },
+                      bgcolor: "#047857",
+                      "&:hover": { bgcolor: "#036149" },
                     }}
                   >
                     Book Appointment
@@ -292,7 +304,7 @@ export default function About() {
                         width: 32,
                         height: 32,
                         borderRadius: 2,
-                        bgcolor: "#0aa07a",
+                        bgcolor: "#047857",
                         display: "grid",
                         placeItems: "center",
                         color: "#fff",
@@ -358,7 +370,7 @@ export default function About() {
                         width: 32,
                         height: 32,
                         borderRadius: 2,
-                        bgcolor: "#0aa07a",
+                        bgcolor: "#047857",
                         display: "grid",
                         placeItems: "center",
                         color: "#fff",
@@ -421,11 +433,18 @@ export default function About() {
                   <Grid key={s.l} item xs={6}>
                     <Stack spacing={0.5}>
                       <Typography
-                        sx={{ color: "#ffffff", fontWeight: 800, fontSize: 28 }}
+                        sx={{
+                          color: "#FFFFFF",
+                          fontWeight: 800,
+                          fontSize: 28,
+                        }}
                       >
                         {s.n}
                       </Typography>
-                      <Typography sx={{ color: "#CFEDEA", fontSize: 13 }}>
+                      {/* Use full white for better contrast on teal */}
+                      <Typography
+                        sx={{ color: "#FFFFFF", fontSize: 13, opacity: 0.96 }}
+                      >
                         {s.l}
                       </Typography>
                     </Stack>
@@ -574,7 +593,7 @@ export default function About() {
                   q: "What does Medicare not cover?",
                   a: "Typically long-term care, most dental, vision, hearing aids, and routine foot care. Supplemental plans may help with gaps.",
                 },
-              ].map((item, idx) => (
+              ].map((item) => (
                 <Accordion
                   key={item.id}
                   disableGutters
@@ -624,7 +643,7 @@ export default function About() {
                       borderRadius: 1,
                     }}
                   />
-                  <Typography sx={{ fontWeight: 800, color: "#0aa07a" }}>
+                  <Typography sx={{ fontWeight: 800, color: "#047857" }}>
                     Health<span style={{ color: "#111" }}>Ease</span>
                   </Typography>
                 </Stack>
@@ -636,21 +655,21 @@ export default function About() {
                 </Typography>
                 <Stack direction="row" spacing={1.5} sx={{ mt: 0.5 }}>
                   <MLink
-                    href="#"
+                    href="https://twitter.com"
                     sx={{ color: "#0a3e57" }}
                     aria-label="Twitter"
                   >
                     <TwitterIcon fontSize="small" />
                   </MLink>
                   <MLink
-                    href="#"
+                    href="https://facebook.com"
                     sx={{ color: "#0a3e57" }}
                     aria-label="Facebook"
                   >
                     <FacebookIcon fontSize="small" />
                   </MLink>
                   <MLink
-                    href="#"
+                    href="https://instagram.com"
                     sx={{ color: "#0a3e57" }}
                     aria-label="Instagram"
                   >
@@ -666,24 +685,17 @@ export default function About() {
                 Quick Links
               </Typography>
               <Stack spacing={1}>
-                {[
-                  { label: "Home", to: "/" },
-                  { label: "About Us", to: "/about" },
-                  { label: "Services", to: "/#services" },
-                  { label: "Doctors & Specialists", to: "/#doctors" },
-                  { label: "FAQs", to: "/#faq" },
-                  { label: "Blog", to: "#" },
-                  { label: "Contact Us", to: "/contact" },
-                ].map((l) => (
+                {quickLinks.map((l) => (
                   <MLink
                     key={l.label}
-                    component={RouterLink}
-                    to={l.to}
+                    component={l.href ? "a" : RouterLink}
+                    to={l.href ? undefined : l.to}
+                    href={l.href}
                     underline="none"
                     sx={{
                       color: "text.secondary",
                       fontSize: 14,
-                      "&:hover": { color: "#0aa07a" },
+                      "&:hover": { color: "#047857" },
                     }}
                   >
                     {l.label}

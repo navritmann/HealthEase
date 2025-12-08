@@ -36,7 +36,6 @@ export default function Navbar() {
   const location = useLocation();
 
   const isDesktop = useMediaQuery("(min-width:900px)");
-  const isXs = useMediaQuery("(max-width:600px)");
 
   const [auth, setAuth] = useState({
     isLoggedIn: false,
@@ -124,6 +123,8 @@ export default function Navbar() {
   if (isDesktop) {
     return (
       <Box
+        component="header"
+        role="banner"
         sx={{
           position: "fixed",
           top: 16,
@@ -133,6 +134,8 @@ export default function Navbar() {
         }}
       >
         <Box
+          component="nav"
+          aria-label="Primary"
           sx={{
             display: "flex",
             alignItems: "center",
@@ -156,7 +159,8 @@ export default function Navbar() {
             <Box
               component="img"
               src="/images/logo.png"
-              alt="HealthEase"
+              alt=""
+              role="presentation"
               sx={{
                 width: 32,
                 height: 32,
@@ -168,7 +172,7 @@ export default function Navbar() {
               sx={{
                 fontWeight: 800,
                 letterSpacing: 0.2,
-                color: "#0aa07a",
+                color: "#047857",
                 fontSize: 18,
               }}
             >
@@ -195,16 +199,21 @@ export default function Navbar() {
               return (
                 <MLink
                   key={item}
+                  component="button"
+                  type="button"
                   underline="none"
                   onClick={() => handleNav(item)}
                   sx={{
                     cursor: "pointer",
-                    color: isActive ? "#0aa07a" : "#222",
+                    color: isActive ? "#047857" : "#222",
                     fontWeight: isActive ? 700 : 500,
                     fontSize: 14,
                     whiteSpace: "nowrap",
                     position: "relative",
-                    "&:hover": { color: "#0aa07a" },
+                    background: "none",
+                    border: "none",
+                    p: 0,
+                    "&:hover": { color: "#047857" },
                     "&::after": isActive
                       ? {
                           content: '""',
@@ -214,7 +223,7 @@ export default function Navbar() {
                           bottom: -4,
                           height: 2,
                           borderRadius: 2,
-                          bgcolor: "#0aa07a",
+                          bgcolor: "#047857",
                         }
                       : {},
                   }}
@@ -249,9 +258,9 @@ export default function Navbar() {
                   px: 3,
                   fontWeight: 700,
                   fontSize: 14,
-                  bgcolor: "#0aa07a",
+                  bgcolor: "#047857",
                   textTransform: "none",
-                  "&:hover": { bgcolor: "#088a69" },
+                  "&:hover": { bgcolor: "#065F46" },
                 }}
               >
                 Join Now
@@ -269,11 +278,11 @@ export default function Navbar() {
                     borderRadius: 999,
                     fontSize: 13,
                     fontWeight: 600,
-                    borderColor: "#0aa07a",
-                    color: "#0aa07a",
+                    borderColor: "#047857",
+                    color: "#047857",
                     "&:hover": {
-                      borderColor: "#088a69",
-                      backgroundColor: "rgba(10,160,122,0.06)",
+                      borderColor: "#065F46",
+                      backgroundColor: "rgba(4,120,87,0.06)",
                     },
                   }}
                 >
@@ -292,7 +301,7 @@ export default function Navbar() {
                   sx={{
                     width: 30,
                     height: 30,
-                    bgcolor: "#0aa07a",
+                    bgcolor: "#047857",
                     fontSize: 14,
                     fontWeight: 700,
                   }}
@@ -339,6 +348,8 @@ export default function Navbar() {
   return (
     <>
       <Box
+        component="header"
+        role="banner"
         sx={{
           position: "fixed",
           top: 0,
@@ -350,6 +361,8 @@ export default function Navbar() {
         }}
       >
         <Box
+          component="nav"
+          aria-label="Primary"
           sx={{
             px: 2,
             py: 1,
@@ -363,7 +376,8 @@ export default function Navbar() {
             <Box
               component="img"
               src="/images/logo.png"
-              alt="HealthEase"
+              alt=""
+              role="presentation"
               sx={{
                 width: 26,
                 height: 26,
@@ -375,7 +389,7 @@ export default function Navbar() {
               sx={{
                 fontWeight: 800,
                 letterSpacing: 0.2,
-                color: "#0aa07a",
+                color: "#047857",
                 fontSize: 16,
               }}
             >
@@ -383,7 +397,11 @@ export default function Navbar() {
             </Box>
           </Stack>
 
-          <IconButton onClick={() => setMenuOpen(true)} size="small">
+          <IconButton
+            onClick={() => setMenuOpen(true)}
+            size="small"
+            aria-label="Open navigation menu"
+          >
             <MenuIcon />
           </IconButton>
         </Box>
@@ -414,7 +432,11 @@ export default function Navbar() {
             }}
           >
             <TypographySmall>Menu</TypographySmall>
-            <IconButton onClick={() => setMenuOpen(false)} size="small">
+            <IconButton
+              onClick={() => setMenuOpen(false)}
+              size="small"
+              aria-label="Close navigation menu"
+            >
               <CloseIcon />
             </IconButton>
           </Box>
@@ -451,8 +473,8 @@ export default function Navbar() {
                   borderRadius: 999,
                   fontWeight: 700,
                   fontSize: 14,
-                  bgcolor: "#0aa07a",
-                  "&:hover": { bgcolor: "#088a69" },
+                  bgcolor: "#047857",
+                  "&:hover": { bgcolor: "#065F46" },
                 }}
               >
                 Sign in
@@ -487,7 +509,7 @@ export default function Navbar() {
                   sx={{
                     width: 32,
                     height: 32,
-                    bgcolor: "#0aa07a",
+                    bgcolor: "#047857",
                     fontSize: 14,
                     fontWeight: 700,
                   }}
@@ -507,11 +529,11 @@ export default function Navbar() {
                     borderRadius: 999,
                     fontWeight: 600,
                     fontSize: 14,
-                    borderColor: "#0aa07a",
-                    color: "#0aa07a",
+                    borderColor: "#047857",
+                    color: "#047857",
                     "&:hover": {
-                      borderColor: "#088a69",
-                      backgroundColor: "rgba(10,160,122,0.06)",
+                      borderColor: "#065F46",
+                      backgroundColor: "rgba(4,120,87,0.06)",
                     },
                   }}
                 >

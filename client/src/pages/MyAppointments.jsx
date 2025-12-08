@@ -80,7 +80,6 @@ export default function MyAppointments() {
   };
 
   const handleReschedule = async (row) => {
-    // only allow rescheduling for non-cancelled future-ish appointments
     if (!row?.id) return;
 
     const currentIso = row.date ? new Date(row.date).toISOString() : "";
@@ -115,6 +114,8 @@ export default function MyAppointments() {
     <>
       <Navbar />
       <Box
+        component="main"
+        role="main"
         sx={{
           bgcolor: "#f8fafa",
           minHeight: "100vh",
@@ -124,7 +125,8 @@ export default function MyAppointments() {
       >
         <Container maxWidth="md">
           <Stack spacing={2} mb={3}>
-            <Typography variant="h4" fontWeight={800}>
+            {/* H1 for this page (variant kept for styling) */}
+            <Typography component="h1" variant="h4" fontWeight={800}>
               My Appointments
             </Typography>
             <Typography color="text.secondary" fontSize={14}>
@@ -266,7 +268,6 @@ export default function MyAppointments() {
                           sx={{ textTransform: "capitalize" }}
                         />
 
-                        {/* Reschedule button for confirmed/rescheduled appointments */}
                         {["confirmed", "rescheduled"].includes(
                           String(r.status || "").toLowerCase()
                         ) && (
@@ -278,11 +279,11 @@ export default function MyAppointments() {
                               textTransform: "none",
                               borderRadius: 999,
                               fontSize: 13,
-                              borderColor: "#0aa07a",
-                              color: "#0aa07a",
+                              borderColor: "#047857",
+                              color: "#047857",
                               "&:hover": {
-                                borderColor: "#088a69",
-                                backgroundColor: "rgba(10,160,122,0.06)",
+                                borderColor: "#065F46",
+                                backgroundColor: "rgba(4,120,87,0.06)",
                               },
                             }}
                           >
@@ -300,8 +301,8 @@ export default function MyAppointments() {
                               textTransform: "none",
                               borderRadius: 999,
                               fontSize: 13,
-                              bgcolor: "#0aa07a",
-                              "&:hover": { bgcolor: "#088a69" },
+                              bgcolor: "#047857",
+                              "&:hover": { bgcolor: "#065F46" },
                             }}
                           >
                             Join Session

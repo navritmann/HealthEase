@@ -1,3 +1,4 @@
+// src/pages/FAQ.jsx
 import React, { useState } from "react";
 import {
   Box,
@@ -63,162 +64,172 @@ export default function FAQ() {
     <>
       <Navbar />
 
-      {/* ===== Hero Section ===== */}
-      <Box
-        sx={{
-          position: "relative",
-          height: { xs: 360, md: 460 },
-          backgroundImage: `url(https://img.freepik.com/free-photo/doctor-holding-patient-hand_53876-14957.jpg)`,
-          backgroundPosition: "center",
-          backgroundSize: "cover",
-          display: "flex",
-          alignItems: "center",
-          color: "#fff",
-        }}
-      >
+      <Box component="main" role="main">
+        {/* ===== Hero Section ===== */}
         <Box
           sx={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.35) 100%)",
-          }}
-        />
-        <Container
-          maxWidth="lg"
-          sx={{
             position: "relative",
-            zIndex: 1,
+            height: { xs: 360, md: 460 },
+            backgroundImage: `url(https://img.freepik.com/free-photo/doctor-holding-patient-hand_53876-14957.jpg)`,
+            backgroundPosition: "center",
+            backgroundSize: "cover",
+            display: "flex",
+            alignItems: "center",
+            color: "#fff",
           }}
         >
-          <Stack spacing={2}>
-            <Breadcrumbs
-              aria-label="breadcrumb"
-              sx={{
-                "& a, & p": { color: "rgba(255,255,255,.85)", fontSize: 13 },
-                mb: { xs: 0.5, md: 1 },
-              }}
-            >
-              <MLink
-                component={RouterLink}
-                underline="hover"
-                color="inherit"
-                to="/"
-              >
-                Home
-              </MLink>
-              <Typography component="span" sx={{ opacity: 0.9, fontSize: 13 }}>
-                FAQ
-              </Typography>
-            </Breadcrumbs>
-
-            <Typography
-              variant="h2"
-              sx={{
-                fontWeight: 800,
-                lineHeight: 1.1,
-                fontSize: { xs: 32, md: 56 },
-                textShadow: "0 2px 16px rgba(0,0,0,.35)",
-              }}
-            >
-              Frequently Asked{" "}
-              <span style={{ fontStyle: "italic" }}>Questions</span>
-            </Typography>
-
-            <Typography
-              sx={{
-                maxWidth: 720,
-                color: "rgba(255,255,255,.92)",
-                fontSize: { xs: 14, md: 16 },
-              }}
-            >
-              Here are answers to the most common questions about HealthEase,
-              appointments, and our services.
-            </Typography>
-          </Stack>
-        </Container>
-      </Box>
-
-      {/* ===== FAQ Section ===== */}
-      <Box sx={{ bgcolor: "#fff" }}>
-        <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 } }}>
-          {faqs.map((item, idx) => (
-            <Accordion
-              key={item.id}
-              expanded={expanded === item.id}
-              onChange={handleChange(item.id)}
-              disableGutters
-              elevation={0}
-              sx={{
-                mb: 1.5,
-                borderRadius: 2,
-                border: "1px solid #E4EBEF",
-                "&::before": { display: "none" },
-                boxShadow:
-                  expanded === item.id
-                    ? "0 6px 24px rgba(16,24,40,.08)"
-                    : "0 2px 6px rgba(16,24,40,.05)",
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon sx={{ color: "#0aa07a" }} />}
-              >
-                <Typography sx={{ fontWeight: 700, color: "#1d2b3a" }}>
-                  {idx + 1}. {item.q}
-                </Typography>
-              </AccordionSummary>
-              <Divider />
-              <AccordionDetails>
-                <Typography sx={{ color: "text.secondary", fontSize: 15 }}>
-                  {item.a}
-                </Typography>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </Container>
-      </Box>
-
-      {/* ===== Still Have Questions Section ===== */}
-      <Box
-        sx={{
-          bgcolor: "#f8fafa",
-          py: { xs: 6, md: 10 },
-          textAlign: "center",
-        }}
-      >
-        <Container maxWidth="sm">
-          <Typography
-            variant="h5"
-            sx={{ fontWeight: 700, color: "#0a3e57", mb: 1 }}
-          >
-            Still have questions?
-          </Typography>
-          <Typography sx={{ color: "text.secondary", mb: 3 }}>
-            We’re here to help you. Reach out to our support team for any
-            additional queries.
-          </Typography>
-          <Button
-            variant="contained"
-            endIcon={<ArrowForwardRoundedIcon />}
+          <Box
             sx={{
-              borderRadius: 999,
-              px: 3,
-              py: 1.2,
-              textTransform: "none",
-              fontWeight: 700,
-              bgcolor: "#0aa07a",
-              "&:hover": { bgcolor: "#088a69" },
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.35) 100%)",
             }}
-            onClick={() =>
-              (window.location.href =
-                "mailto:info@healthease.com?subject=Support%20Request")
-            }
+          />
+          <Container
+            maxWidth="lg"
+            sx={{
+              position: "relative",
+              zIndex: 1,
+            }}
           >
-            Contact Support
-          </Button>
-        </Container>
+            <Stack spacing={2}>
+              <Breadcrumbs
+                aria-label="breadcrumb"
+                sx={{
+                  "& a, & p": { color: "rgba(255,255,255,.85)", fontSize: 13 },
+                  mb: { xs: 0.5, md: 1 },
+                }}
+              >
+                <MLink
+                  component={RouterLink}
+                  underline="hover"
+                  color="inherit"
+                  to="/"
+                >
+                  Home
+                </MLink>
+                <Typography
+                  component="span"
+                  sx={{ opacity: 0.9, fontSize: 13 }}
+                >
+                  FAQ
+                </Typography>
+              </Breadcrumbs>
+
+              {/* H1 for page */}
+              <Typography
+                component="h1"
+                variant="h2"
+                sx={{
+                  fontWeight: 800,
+                  lineHeight: 1.1,
+                  fontSize: { xs: 32, md: 56 },
+                  textShadow: "0 2px 16px rgba(0,0,0,.35)",
+                }}
+              >
+                Frequently Asked{" "}
+                <span style={{ fontStyle: "italic" }}>Questions</span>
+              </Typography>
+
+              <Typography
+                sx={{
+                  maxWidth: 720,
+                  color: "rgba(255,255,255,.92)",
+                  fontSize: { xs: 14, md: 16 },
+                }}
+              >
+                Here are answers to the most common questions about HealthEase,
+                appointments, and our services.
+              </Typography>
+            </Stack>
+          </Container>
+        </Box>
+
+        {/* ===== FAQ Section ===== */}
+        <Box sx={{ bgcolor: "#fff" }}>
+          <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 } }}>
+            {faqs.map((item, idx) => (
+              <Accordion
+                key={item.id}
+                expanded={expanded === item.id}
+                onChange={handleChange(item.id)}
+                disableGutters
+                elevation={0}
+                sx={{
+                  mb: 1.5,
+                  borderRadius: 2,
+                  border: "1px solid #E4EBEF",
+                  "&::before": { display: "none" },
+                  boxShadow:
+                    expanded === item.id
+                      ? "0 6px 24px rgba(16,24,40,.08)"
+                      : "0 2px 6px rgba(16,24,40,.05)",
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon sx={{ color: "#047857" }} />}
+                >
+                  <Typography sx={{ fontWeight: 700, color: "#1d2b3a" }}>
+                    {idx + 1}. {item.q}
+                  </Typography>
+                </AccordionSummary>
+                <Divider />
+                <AccordionDetails>
+                  <Typography sx={{ color: "text.secondary", fontSize: 15 }}>
+                    {item.a}
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Container>
+        </Box>
+
+        {/* ===== Still Have Questions Section ===== */}
+        <Box
+          sx={{
+            bgcolor: "#f8fafa",
+            py: { xs: 6, md: 10 },
+            textAlign: "center",
+          }}
+        >
+          <Container maxWidth="sm">
+            {/* H2, next level after page H1 */}
+            <Typography
+              component="h2"
+              variant="h5"
+              sx={{ fontWeight: 700, color: "#0a3e57", mb: 1 }}
+            >
+              Still have questions?
+            </Typography>
+            <Typography sx={{ color: "text.secondary", mb: 3 }}>
+              We’re here to help you. Reach out to our support team for any
+              additional queries.
+            </Typography>
+            <Button
+              variant="contained"
+              endIcon={<ArrowForwardRoundedIcon />}
+              sx={{
+                borderRadius: 999,
+                px: 3,
+                py: 1.2,
+                textTransform: "none",
+                fontWeight: 700,
+                bgcolor: "#047857",
+                "&:hover": { bgcolor: "#065F46" },
+              }}
+              onClick={() =>
+                (window.location.href =
+                  "mailto:info@healthease.com?subject=Support%20Request")
+              }
+            >
+              Contact Support
+            </Button>
+          </Container>
+        </Box>
       </Box>
 
+      {/* ===== Footer ===== */}
       <Box sx={{ bgcolor: "#fff", borderTop: "1px solid #E9EEF3" }}>
         <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
           <Grid container spacing={{ xs: 4, md: 6 }}>
@@ -233,10 +244,12 @@ export default function FAQ() {
                   to="/"
                   sx={{ textDecoration: "none" }}
                 >
+                  {/* decorative logo: no redundant alt */}
                   <Box
                     component="img"
                     src="/images/logo.png"
-                    alt="HealthEase"
+                    alt=""
+                    role="presentation"
                     sx={{
                       width: 36,
                       height: 36,
@@ -244,7 +257,7 @@ export default function FAQ() {
                       borderRadius: 1,
                     }}
                   />
-                  <Typography sx={{ fontWeight: 800, color: "#0aa07a" }}>
+                  <Typography sx={{ fontWeight: 800, color: "#047857" }}>
                     Health<span style={{ color: "#111" }}>Ease</span>
                   </Typography>
                 </Stack>
@@ -259,7 +272,7 @@ export default function FAQ() {
                     href="https://twitter.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    sx={{ color: "#0a3e57" }}
+                    sx={{ color: "#102A43" }}
                     aria-label="Twitter"
                   >
                     <TwitterIcon fontSize="small" />
@@ -268,7 +281,7 @@ export default function FAQ() {
                     href="https://facebook.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    sx={{ color: "#0a3e57" }}
+                    sx={{ color: "#102A43" }}
                     aria-label="Facebook"
                   >
                     <FacebookIcon fontSize="small" />
@@ -277,7 +290,7 @@ export default function FAQ() {
                     href="https://instagram.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    sx={{ color: "#0a3e57" }}
+                    sx={{ color: "#102A43" }}
                     aria-label="Instagram"
                   >
                     <InstagramIcon fontSize="small" />
@@ -288,7 +301,11 @@ export default function FAQ() {
 
             {/* Col 2: Quick Links */}
             <Grid item xs={12} sm={6} md={2.5}>
-              <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+              <Typography
+                component="h2"
+                variant="subtitle1"
+                sx={{ fontWeight: 700, mb: 1.5 }}
+              >
                 Quick Links
               </Typography>
               <Stack spacing={1}>
@@ -314,7 +331,7 @@ export default function FAQ() {
                         sx={{
                           color: "text.secondary",
                           fontSize: 14,
-                          "&:hover": { color: "#0aa07a" },
+                          "&:hover": { color: "#047857" },
                         }}
                       >
                         {l.label}
@@ -331,7 +348,7 @@ export default function FAQ() {
                         sx={{
                           color: "text.secondary",
                           fontSize: 14,
-                          "&:hover": { color: "#0aa07a" },
+                          "&:hover": { color: "#047857" },
                         }}
                       >
                         {l.label}
@@ -349,7 +366,7 @@ export default function FAQ() {
                         sx={{
                           color: "text.secondary",
                           fontSize: 14,
-                          "&:hover": { color: "#0aa07a" },
+                          "&:hover": { color: "#047857" },
                         }}
                       >
                         {l.label}
@@ -366,7 +383,7 @@ export default function FAQ() {
                       sx={{
                         color: "text.secondary",
                         fontSize: 14,
-                        "&:hover": { color: "#0aa07a" },
+                        "&:hover": { color: "#047857" },
                       }}
                     >
                       {l.label}
@@ -378,7 +395,11 @@ export default function FAQ() {
 
             {/* Col 3: Our Services */}
             <Grid item xs={12} sm={6} md={2.5}>
-              <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+              <Typography
+                component="h2"
+                variant="subtitle1"
+                sx={{ fontWeight: 700, mb: 1.5 }}
+              >
                 Our Services
               </Typography>
               <Stack spacing={1}>
@@ -402,7 +423,11 @@ export default function FAQ() {
 
             {/* Col 4: Contact Us */}
             <Grid item xs={12} md={3}>
-              <Typography sx={{ fontWeight: 700, mb: 1.5 }}>
+              <Typography
+                component="h2"
+                variant="subtitle1"
+                sx={{ fontWeight: 700, mb: 1.5 }}
+              >
                 Contact Us
               </Typography>
               <Stack spacing={1}>
